@@ -14,7 +14,6 @@ class LeftMenu(ctk.CTkScrollableFrame):
         self.checkboxes = []
 
 
-
     # draw all what can you delete in the left menu
     def draw_cleaners(self, cleaners_data) -> None:
         if not cleaners_data:

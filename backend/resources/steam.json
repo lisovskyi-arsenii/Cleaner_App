@@ -1,0 +1,62 @@
+{
+  "id": "steam",
+  "name": "Steam",
+  "description": "Gaming platform",
+  "icon": "🎮",
+  "detection": {
+    "paths": [
+      "%ProgramFiles(x86)%/Steam/steam.exe",
+      "%ProgramFiles%/Steam/steam.exe",
+      "~/.steam",
+      "~/.local/share/Steam"
+    ],
+    "registry": [
+      {
+        "key": "HKLM\\SOFTWARE\\Valve\\Steam",
+        "os": ["windows"]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "shader_cache",
+      "label": "Shader Cache",
+      "description": "Delete shader cache (will be regenerated)",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%ProgramFiles(x86)%/Steam/steamapps/shadercache",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "logs",
+      "label": "Logs",
+      "description": "Delete Steam log files",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "%ProgramFiles(x86)%/Steam/logs/*.log",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "download_cache",
+      "label": "Download Cache",
+      "description": "Delete download cache",
+      "warning": "May need to re-download some game files",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%ProgramFiles(x86)%/Steam/appcache/httpcache",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}

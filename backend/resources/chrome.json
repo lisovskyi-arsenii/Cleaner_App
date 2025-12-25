@@ -1,0 +1,75 @@
+{
+  "id": "chrome",
+  "name": "Google Chrome",
+  "description": "Web browser",
+  "icon": "🌐",
+  "detection": {
+    "paths": [
+      "%ProgramFiles%/Google/Chrome/Application/chrome.exe",
+      "%ProgramFiles(x86)%/Google/Chrome/Application/chrome.exe",
+      "%LocalAppData%/Google/Chrome/User Data",
+      "~/.config/google-chrome",
+      "/Applications/Google Chrome.app"
+    ],
+    "registry": [
+      {
+        "key": "HKLM\\SOFTWARE\\Google\\Chrome",
+        "os": ["windows"]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "cache",
+      "label": "Cache",
+      "description": "Delete web cache",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%LocalAppData%/Google/Chrome/User Data/Default/Cache",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "~/.cache/google-chrome",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "cookies",
+      "label": "Cookies",
+      "description": "Delete cookies and site data",
+      "warning": "You will be logged out of all websites",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "%LocalAppData%/Google/Chrome/User Data/Default/Cookies*",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "~/.config/google-chrome/Default/Cookies*",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "label": "History",
+      "description": "Delete browsing history",
+      "actions": [
+        {
+          "command": "vacuum",
+          "search": "file",
+          "path": "%LocalAppData%/Google/Chrome/User Data/Default/History",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}

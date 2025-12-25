@@ -1,0 +1,69 @@
+{
+  "id": "vscode",
+  "name": "Visual Studio Code",
+  "description": "Code editor",
+  "icon": "💻",
+  "detection": {
+    "paths": [
+      "%LocalAppData%/Programs/Microsoft VS Code/Code.exe",
+      "%ProgramFiles%/Microsoft VS Code/Code.exe",
+      "~/.vscode",
+      "/usr/bin/code",
+      "/Applications/Visual Studio Code.app"
+    ]
+  },
+  "options": [
+    {
+      "id": "cache",
+      "label": "Cache",
+      "description": "Delete VS Code cache files",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%AppData%/Code/Cache",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%AppData%/Code/CachedData",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "~/.config/Code/Cache",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "logs",
+      "label": "Logs",
+      "description": "Delete log files",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "%AppData%/Code/logs",
+          "os": ["windows"],
+          "type": "f"
+        }
+      ]
+    },
+    {
+      "id": "workspace_storage",
+      "label": "Workspace Storage",
+      "description": "Delete workspace cache",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%AppData%/Code/User/workspaceStorage",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}

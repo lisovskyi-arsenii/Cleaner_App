@@ -2,6 +2,7 @@
 
 import customtkinter as ctk
 
+from src.api import backend
 from src.api.backend import get_cleaners
 from src.components.left_menu import LeftMenu
 from src.components.main_menu import MainMenu
@@ -81,14 +82,20 @@ class App(ctk.CTk):
     # TODO
     # after button `analyze` is pressed, this function will be invoked
     def on_analyze_clicked(self):
-        pass
+        selected_data = self.left_menu.get_selected()
+        print(f"selected_data = {selected_data}")
+        backend.analyze_cleaners(selected_data)
+        # pass
 
     # TODO
     # after button `clean` is pressed, this function will be invoked
     def on_clean_clicked(self):
         # взяти вибрані чекбокси
         # та далі відправити на очищування на бекенд
-        pass
+        selected_data = self.left_menu.get_selected()
+        print(f"selected_data = {selected_data}")
+
+        # pass
 
     # TODO
     # after button `settings` is pressed, this function will be invoked

@@ -1,0 +1,97 @@
+{
+  "id": "firefox",
+  "name": "Mozilla Firefox",
+  "description": "Web browser",
+  "icon": "🦊",
+  "detection": {
+    "paths": [
+      "%ProgramFiles%/Mozilla Firefox/firefox.exe",
+      "%ProgramFiles(x86)%/Mozilla Firefox/firefox.exe",
+      "%AppData%/Mozilla/Firefox/Profiles",
+      "~/.mozilla/firefox",
+      "/Applications/Firefox.app"
+    ],
+    "registry": [
+      {
+        "key": "HKLM\\SOFTWARE\\Mozilla\\Mozilla Firefox",
+        "os": ["windows"]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "cache",
+      "label": "Cache",
+      "description": "Delete web cache (images, scripts, temporary files)",
+      "warning": "May slow down first browser start",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%AppData%/Mozilla/Firefox/Profiles/*/cache2",
+          "os": ["windows"],
+          "type": "f"
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "~/.mozilla/firefox/*/cache2",
+          "os": ["linux"],
+          "type": "f"
+        }
+      ]
+    },
+    {
+      "id": "cookies",
+      "label": "Cookies",
+      "description": "Delete cookies and site data",
+      "warning": "You will be logged out of all websites",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "%AppData%/Mozilla/Firefox/Profiles/*/cookies.sqlite*",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "~/.mozilla/firefox/*/cookies.sqlite*",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "label": "Browsing History",
+      "description": "Delete browsing history and downloads history",
+      "actions": [
+        {
+          "command": "vacuum",
+          "search": "file",
+          "path": "%AppData%/Mozilla/Firefox/Profiles/*/places.sqlite",
+          "os": ["windows"]
+        },
+        {
+          "command": "vacuum",
+          "search": "file",
+          "path": "~/.mozilla/firefox/*/places.sqlite",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "session",
+      "label": "Session Data",
+      "description": "Delete open tabs and windows",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "glob",
+          "path": "%AppData%/Mozilla/Firefox/Profiles/*/sessionstore*",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}

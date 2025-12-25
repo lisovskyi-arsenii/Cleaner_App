@@ -1,0 +1,75 @@
+{
+  "id": "system",
+  "name": "System",
+  "description": "Windows system files",
+  "icon": "🖥️",
+  "detection": {},
+  "options": [
+    {
+      "id": "temp",
+      "label": "Temporary Files",
+      "description": "Delete temporary files from %TEMP%",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%TEMP%",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "C:\\Windows\\Temp",
+          "os": ["windows"]
+        },
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "/tmp",
+          "os": ["linux"]
+        }
+      ]
+    },
+    {
+      "id": "recycle_bin",
+      "label": "Recycle Bin",
+      "description": "Empty recycle bin",
+      "warning": "This cannot be undone!",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "C:\\$Recycle.Bin",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "prefetch",
+      "label": "Prefetch",
+      "description": "Delete Windows prefetch files",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "C:\\Windows\\Prefetch",
+          "os": ["windows"],
+          "type": "f"
+        }
+      ]
+    },
+    {
+      "id": "thumbnails",
+      "label": "Thumbnails",
+      "description": "Delete thumbnail cache",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.all",
+          "path": "%LocalAppData%/Microsoft/Windows/Explorer",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}
