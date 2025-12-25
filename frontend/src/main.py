@@ -1,19 +1,10 @@
-from App import App
+# main - entrance point of program
 
-
-def setup_window():
-    app = App()
-    app.set_cleaners()
-    app.draw_cleaners()
-    app.mainloop()
-
-
+from src.App import App
 
 def main():
-    setup_window()
-
-
-
+    app = App()
+    app.mainloop()
 
 
 if __name__ == '__main__':
