@@ -1,0 +1,40 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="Cython" />
+          <option value="wheel" />
+          <option value="scipy" />
+          <option value="TTS" />
+          <option value="deepl" />
+          <option value="moviepy" />
+          <option value="pydub" />
+          <option value="librosa" />
+          <option value="soundfile" />
+          <option value="python-dotenv" />
+          <option value="joblib" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="isIgnoringEnabled" value="true" />
+      <option name="ignoredModules">
+        <list>
+          <option value="dubbing_video_from_yt" />
+        </list>
+      </option>
+      <option name="ignoredPackages">
+        <list>
+          <option value="null:torch:2.9.1" />
+        </list>
+      </option>
+      <option name="ignoredReasons">
+        <list>
+          <option value="Not exploitable" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
