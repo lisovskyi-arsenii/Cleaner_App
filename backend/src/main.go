@@ -119,7 +119,6 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-
 	response := &AnalyzeResponse{
 		Items: make([]AnalyzeItem, 0),
 	}
@@ -136,7 +135,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 
 		for _, action := range actions {
 			if !isOSSupported(action.OS) {
-				return
+				continue
 			}
 
 			searchPath := expandPath(action.Path)
