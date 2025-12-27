@@ -85,8 +85,8 @@ class App(ctk.CTk):
     def on_analyze_clicked(self):
         selected_data = self.left_menu.get_selected()
         print(f"selected_data = {selected_data}")
-        self.left_menu.clear_selected_checkboxes()
         backend.analyze_cleaners(selected_data)
+        self.left_menu.clear_selected_checkboxes()
         # pass
 
     # TODO
