@@ -4,11 +4,23 @@ package main
 
 // Cleaner defines a type representing a cleaning operation with associated options and metadata.
 type Cleaner struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Options     []Option `json:"options"`
-	Description string   `json:"description"`
-	Running     bool     `json:"running"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Running     bool      `json:"running"`
+	Detect      Detection `json:"detect"`
+	Options     []Option  `json:"options"`
+}
+
+type Detection struct {
+	Type    	string   `json:"type"` // "file", "always", "dir", "registry"
+	Paths   	[]string `json:"paths"`
+	Registry 	[]RegistryCheck `json:"registry"`
+}
+
+type RegistryCheck struct {
+	Key string   `json:"key"`
+	OS  []string `json:"os,omitempty"`
 }
 
 // Option defines a type representing a cleaning operation option.
@@ -25,7 +37,6 @@ type Action struct {
 	Search  string 		`json:"search"` // "file", "glob", "walk.files"
 	Path    string 		`json:"path"`
 	OS 	    []string 	`json:"os,omitempty"`
-	Type 	string 		`json:"type,omitempty"`
 }
 
 
@@ -39,7 +50,7 @@ type CleanRequest struct {
 
 // AnalyzeResponse - response for frontend
 type AnalyzeResponse struct {
-	TotalSize  uint64 			`json:"total_items"`
+	TotalSize  uint64 		 `json:"total_size"`
 	TotalFiles uint64        `json:"total_files"`
 	Items      []AnalyzeItem `json:"items"`
 }

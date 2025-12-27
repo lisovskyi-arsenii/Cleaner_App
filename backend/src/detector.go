@@ -6,22 +6,16 @@ import (
     "runtime"
     "strings"
 
-    "golang.org/x/sys/windows/registry" // для Windows
+    "golang.org/x/sys/windows/registry" // for Windows
 )
 
-type Detection struct {
-    Type     string            `json:"type"`
-    Paths    []string          `json:"paths"`
-    Registry []RegistryCheck   `json:"registry,omitempty"`
-}
-
-type RegistryCheck struct {
-    Key string   `json:"key"`
-    OS  []string `json:"os,omitempty"`
-}
 
 // DetectInstalled перевіряє чи програма встановлена
 func DetectInstalled(detection Detection) bool {
+    if detection.Type == "always" || (len(detection.Paths) == 0 && len(detection.Registry) == 0) {
+        return true
+    }
+
     // 1. Перевірка шляхів
     for _, path := range detection.Paths {
         if checkPathExists(path) {
@@ -41,16 +35,29 @@ func DetectInstalled(detection Detection) bool {
     return false
 }
 
+func expandPath(path string) string {
+    expandedPath := os.ExpandEnv(path)
+
+    if runtime.GOOS == "windows" {
+        replacer := strings.NewReplacer(
+            "%AppData%", os.Getenv("AppData"),
+            "%LocalAppData%", os.Getenv("LocalAppData"),
+            "%ProgramFiles%", os.Getenv("ProgramFiles"),
+            "%ProgramFiles(x86)%", os.Getenv("ProgramFiles(x86)"),
+            "%UserProfile%", os.Getenv("UserProfile"),
+            "%SystemRoot%", os.Getenv("SystemRoot"),
+            "%TEMP%", os.Getenv("TEMP"),
+            )
+        expandedPath = replacer.Replace(expandedPath)
+    }
+
+    return expandedPath
+}
+
 // checkPathExists перевіряє чи існує шлях
 func checkPathExists(path string) bool {
     // Розширити змінні оточення
-    expanded := os.ExpandEnv(path)
-
-    // Для Windows замінити %ProgramFiles(x86)%
-    if runtime.GOOS == "windows" {
-        expanded = strings.ReplaceAll(expanded, "%ProgramFiles(x86)%",
-            os.Getenv("ProgramFiles(x86)"))
-    }
+    expanded := expandPath(path)
 
     // Glob для wildcards
     if strings.Contains(expanded, "*") {
@@ -95,6 +102,7 @@ func checkRegistry(keyPath string) bool {
     return true
 }
 
+// Is OS supported for this operation
 func isOSSupported(osList []string) bool {
     if len(osList) == 0 {
         return true

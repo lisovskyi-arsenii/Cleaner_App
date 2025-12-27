@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 
@@ -50,132 +51,19 @@ func loadAllCleaners() ([]Cleaner, error) {
 
 
 func filterOnlyInstalledCleaners(cleaners []Cleaner) ([]Cleaner, error) {
-	//installed := make([]Cleaner, 0)
-	//
-	// for _, cleaner := range cleaners {
-    //    // System завжди показувати (немає detection)
-    //    if len(cleaner.Detection.Paths) == 0 &&
-    //       len(cleaner.Detection.Registry) == 0 {
-    //        installed = append(installed, cleaner)
-    //        log.Printf("ℹ️  Always show: %s", cleaner.Name)
-    //        continue
-    //    }
-	//
-    //    // Перевірити чи встановлено
-    //    if detector.DetectInstalled(cleaner.Detection) {
-    //        installed = append(installed, cleaner)
-    //        log.Printf("✅ Detected: %s", cleaner.Name)
-    //    } else {
-    //        log.Printf("❌ Not found: %s", cleaner.Name)
-    //    }
-    //}
-	return cleaners, nil
+	var installedCleaners []Cleaner
+
+	for _, cleaner := range cleaners {
+		if DetectInstalled(cleaner.Detect) {
+			installedCleaners = append(installedCleaners, cleaner)
+		}
+	}
+
+	return installedCleaners, nil
 }
 
 
 func getCleaners(w http.ResponseWriter, r *http.Request) {
-	//// test
-	//cleaners := &[]Cleaner{
-	//	{
-	//		ID:          "firefox",
-	//		Name:        "Mozilla Firefox",
-	//		Description: "Web browser",
-	//		Running:     false,
-	//		Options: []Option{
-	//			{
-	//				ID:          "cache",
-	//				Label:       "Cache",
-	//				Description: "Delete the web cache",
-	//				Warning:     "This may slow down first browser start",
-	//				Actions: []Action{
-	//					{
-	//						Command: "delete",
-	//						Search:  "walk.files",
-	//						Path:    "%AppData%/Mozilla/Firefox/Profiles/*/cache2",
-	//						OS:      []string{"windows"},
-	//						Type:    "f",
-	//					},
-	//					{
-	//						Command: "delete",
-	//						Search:  "walk.files",
-	//						Path:    "~/.mozilla/firefox/*/cache2",
-	//						OS:      []string{"linux"},
-	//						Type:    "f",
-	//					},
-	//				},
-	//			},
-	//			{
-	//				ID:          "cookies",
-	//				Label:       "Cookies",
-	//				Description: "Delete cookies which track you",
-	//				Warning:     "You will be logged out of websites",
-	//				Actions: []Action{
-	//					{
-	//						Command: "delete",
-	//						Search:  "glob",
-	//						Path:    "%AppData%/Mozilla/Firefox/Profiles/*/cookies.sqlite*",
-	//						OS:      []string{"windows"},
-	//					},
-	//					{
-	//						Command: "delete",
-	//						Search:  "glob",
-	//						Path:    "~/.mozilla/firefox/*/cookies.sqlite*",
-	//						OS:      []string{"linux"},
-	//					},
-	//				},
-	//			},
-	//			{
-	//				ID:          "history",
-	//				Label:       "History",
-	//				Description: "Delete browsing history",
-	//				Actions: []Action{
-	//					{
-	//						Command: "vacuum",
-	//						Search:  "file",
-	//						Path:    "%AppData%/Mozilla/Firefox/Profiles/*/places.sqlite",
-	//						OS:      []string{"windows"},
-	//					},
-	//				},
-	//			},
-	//		},
-	//	},
-	//	{
-	//		ID:          "system",
-	//		Name:        "System",
-	//		Description: "Windows system files",
-	//		Running:     false,
-	//		Options: []Option{
-	//			{
-	//				ID:          "temp",
-	//				Label:       "Temporary files",
-	//				Description: "Delete temporary files",
-	//				Actions: []Action{
-	//					{
-	//						Command: "delete",
-	//						Search:  "walk.all",
-	//						Path:    "%TEMP%",
-	//						OS:      []string{"windows"},
-	//					},
-	//				},
-	//			},
-	//			{
-	//				ID:          "recycle",
-	//				Label:       "Recycle Bin",
-	//				Description: "Empty recycle bin",
-	//				Warning:     "Cannot be undone!",
-	//				Actions: []Action{
-	//					{
-	//						Command: "delete",
-	//						Search:  "walk.all",
-	//						Path:    "C:\\$Recycle.Bin",
-	//						OS:      []string{"windows"},
-	//					},
-	//				},
-	//			},
-	//		},
-	//	},
-	//}
-
 	allCleaners, err := loadAllCleaners()
 	if err != nil {
 		fmt.Printf("Error loading all cleaners: %v\n", err)
@@ -200,30 +88,105 @@ func getCleaners(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAnalyze(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		return
+	}
+
 	var requests []CleanRequest
-	json.NewDecoder(r.Body).Decode(&requests)
+	if err := json.NewDecoder(r.Body).Decode(&requests); err != nil {
+		http.Error(w, "Invalid json", http.StatusBadRequest)
+		return
+	}
 
 	fmt.Println("DEBUG: Cleaners - ", requests)
 
+
+	allCleaners, err := loadAllCleaners()
+	if err != nil {
+		fmt.Printf("Error loading all cleaners: %v\n", err)
+		return
+	}
+
+	cleanerMap := make(map[string]map[string][]Action)
+
+	for _, cleaner := range allCleaners {
+		cleanerMap[cleaner.ID] = make(map[string][]Action)
+		for _, option := range cleaner.Options {
+			cleanerMap[cleaner.ID][option.ID] = option.Actions
+		}
+	}
+
+
+
 	response := &AnalyzeResponse{
-		TotalSize: uint64(len(requests)),
-		TotalFiles: uint64(len(requests)),
-		Items:      make([]AnalyzeItem, len(requests)),
+		Items: make([]AnalyzeItem, 0),
 	}
 
 	for _, request := range requests {
+		actions, ok := cleanerMap[request.CleanerID][request.OptionID]
+		if !ok {
+			continue
+		}
+
+		var size uint64 = 0
+		var fileCount uint64 = 0
+		var foundPaths []string
+
+		for _, action := range actions {
+			if !isOSSupported(action.OS) {
+				return
+			}
+
+			searchPath := expandPath(action.Path)
+
+
+			if action.Search == "glob" || strings.Contains(searchPath, "*") {
+				matches, _ := filepath.Glob(searchPath)
+				for _, match := range matches {
+					if info, err := os.Stat(match); err == nil && !info.IsDir() {
+						size += uint64(info.Size())
+						fileCount++
+						if len(foundPaths) < 10 {
+							foundPaths = append(foundPaths, match)
+						}
+					}
+				}
+			} else if action.Search == "walk.files" {
+				filepath.WalkDir(searchPath, func(path string, d os.DirEntry, err error) error {
+					if err == nil && !d.IsDir() {
+						info, _ := d.Info()
+						size += uint64(info.Size())
+						fileCount++
+						if len(foundPaths) < 10 {
+							foundPaths = append(foundPaths, path)
+						}
+					}
+					return nil
+				})
+			} else {
+				if info, err := os.Stat(searchPath); err == nil && !info.IsDir() {
+					size += uint64(info.Size())
+					fileCount++
+					foundPaths = append(foundPaths, searchPath)
+				}
+			}
+		}
+
 		item := &AnalyzeItem{
 			CleanerID: request.CleanerID,
 			OptionID:  request.OptionID,
-			Size: 50000000,
-			FileCount: uint64(len(requests)),
-			Paths: []string{"C:/test/file1.txt", "C:/test/file2.txt"},
+			Size:      size,
+			FileCount: fileCount,
+			Paths:     foundPaths,
 		}
 
 		response.Items = append(response.Items, *item)
-		response.TotalSize += item.Size
-		response.TotalFiles += item.FileCount
+		response.TotalSize += size
+		response.TotalFiles += fileCount
 	}
+
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(&response)
