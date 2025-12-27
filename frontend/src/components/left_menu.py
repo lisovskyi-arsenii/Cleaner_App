@@ -88,6 +88,7 @@ class LeftMenu(ctk.CTkScrollableFrame):
             'variable': var,
             'cleaner_id': cleaner['id'],
             'option_id': option['id'],
+            'widget': option_checkbox,
         })
 
 
@@ -102,6 +103,12 @@ class LeftMenu(ctk.CTkScrollableFrame):
                 })
 
         return selected
+
+    # clear all selected options
+    def clear_selected_checkboxes(self):
+        for checkbox in self.checkboxes:
+            checkbox['variable'].set(False)
+
 
     # clear everything
     def clear(self):

@@ -5,7 +5,8 @@ import customtkinter as ctk
 from src.config.settings import *
 
 class TopMenu(ctk.CTkFrame):
-    def __init__(self, parent, on_analyze=None, on_clean=None, on_settings=None):
+    def __init__(self, parent, on_analyze=None, on_clean=None,
+                 on_clear_options=None, on_settings=None):
         super().__init__(
             parent,
             height=TOP_MENU_HEIGHT,
@@ -35,6 +36,16 @@ class TopMenu(ctk.CTkFrame):
             command=on_analyze
         )
         self.btn_analyze.pack(side="left", padx=10, pady=10)
+
+        # button `clear_options`
+        self.btn_clear_option = ctk.CTkButton(
+            self,
+            text="clear options",
+            width=TOP_MENU_BUTTON_CLEAR_OPTIONS_WIDTH,
+            height=TOP_MENU_BUTTON_CLEAR_OPTIONS_HEIGHT,
+            command=on_clear_options
+        )
+        self.btn_clear_option.pack(side="left", padx=10, pady=10)
 
         # button `settings`
         self.btn_settings = ctk.CTkButton(

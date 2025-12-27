@@ -6,14 +6,14 @@ BACKEND_URL         = "http://localhost:8080"
 BACKEND_URL_HTTPS   = "https://localhost:8080"
 REQUEST_TIMEOUT     = 3  # seconds
 
-# Window settings
+# WINDOW settings
 WINDOW_TITLE = "CLEANER APP"
 WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
 MIN_WIDTH = 800
 MIN_HEIGHT = 600
 
-# Top menu settings
+# TOP menu settings
 TOP_MENU_HEIGHT = 60
 TOP_MENU_CORNER_RADIUS = 0
 
@@ -25,18 +25,22 @@ TOP_MENU_BUTTON_CLEAN_HEIGHT = 50
 TOP_MENU_BUTTON_ANALYZE_WIDTH = 110
 TOP_MENU_BUTTON_ANALYZE_HEIGHT = 50
 
+# button `clear_options`
+TOP_MENU_BUTTON_CLEAR_OPTIONS_WIDTH = 120
+TOP_MENU_BUTTON_CLEAR_OPTIONS_HEIGHT = 50
+
 # button `settings`
 TOP_MENU_BUTTON_SETTINGS_WIDTH = 100
 TOP_MENU_BUTTON_SETTINGS_HEIGHT = 50
 
-# Left menu settings
+# LEFT menu settings
 LEFT_MENU_WIDTH = 250
 LEFT_MENU_CORNER_RADIUS = 0
 
-# Main menu settings
+# MAIN menu settings
 MAIN_MENU_CORNER_RADIUS = 0
 
-# Theme settings
+# THEME settings
 THEME_DIRECTORY = "resources/themes"
 APPEARANCE_MODE = Appearance.DARK
 

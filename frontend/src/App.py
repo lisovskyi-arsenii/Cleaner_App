@@ -44,6 +44,7 @@ class App(ctk.CTk):
             self,
             on_analyze=self.on_analyze_clicked,
             on_clean=self.on_clean_clicked,
+            on_clear_options=self.on_clear_options_clicked,
             on_settings=self.on_settings_clicked,
         )
         self.top_menu.grid(row=0, column=0, columnspan=2, sticky="ew")
@@ -84,6 +85,7 @@ class App(ctk.CTk):
     def on_analyze_clicked(self):
         selected_data = self.left_menu.get_selected()
         print(f"selected_data = {selected_data}")
+        self.left_menu.clear_selected_checkboxes()
         backend.analyze_cleaners(selected_data)
         # pass
 
@@ -94,8 +96,17 @@ class App(ctk.CTk):
         # та далі відправити на очищування на бекенд
         selected_data = self.left_menu.get_selected()
         print(f"selected_data = {selected_data}")
+        self.left_menu.clear_selected_checkboxes()
 
         # pass
+
+    # after button `clear options` is pressed, this function will be invoked
+    def on_clear_options_clicked(self):
+        self.left_menu.clear_selected_checkboxes()
+        self.left_menu.checkboxes.clear()
+        # update layout
+        self.update_idletasks()
+
 
     # TODO
     # after button `settings` is pressed, this function will be invoked
