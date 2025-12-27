@@ -63,7 +63,7 @@ func filterOnlyInstalledCleaners(cleaners []Cleaner) ([]Cleaner, error) {
 }
 
 
-func getCleaners(w http.ResponseWriter, r *http.Request) {
+func getCleaners(w http.ResponseWriter, _ *http.Request) {
 	allCleaners, err := loadAllCleaners()
 	if err != nil {
 		fmt.Printf("Error loading all cleaners: %v\n", err)
@@ -78,7 +78,12 @@ func getCleaners(w http.ResponseWriter, r *http.Request) {
 
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&installedCleaners)
+	err = json.NewEncoder(w).Encode(&installedCleaners)
+	if err != nil {
+		fmt.Printf("Error encoding cleaners: %v\n", err)
+		return
+	}
+
 	for _, cleaner := range installedCleaners {
 		fmt.Printf("Found cleaner %s\n", cleaner.Name)
 		fmt.Printf("Option ID: %s\n", cleaner.ID)
@@ -153,7 +158,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			} else if action.Search == "walk.files" {
-				filepath.WalkDir(searchPath, func(path string, d os.DirEntry, err error) error {
+				err := filepath.WalkDir(searchPath, func(path string, d os.DirEntry, err error) error {
 					if err == nil && !d.IsDir() {
 						info, _ := d.Info()
 						size += uint64(info.Size())
@@ -164,6 +169,9 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 					}
 					return nil
 				})
+				if err != nil {
+					return
+				}
 			} else {
 				if info, err := os.Stat(searchPath); err == nil && !info.IsDir() {
 					size += uint64(info.Size())
@@ -188,7 +196,11 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&response)
+	err = json.NewEncoder(w).Encode(&response)
+	if err != nil {
+		fmt.Printf("Error encoding cleaners: %v\n", err)
+		return
+	}
 
 	fmt.Println("DEBUG: AnalyzeResponse - ", *response)
 }
