@@ -1,4 +1,4 @@
-package main
+package structures
 
 // structures for backend
 
@@ -7,14 +7,14 @@ type Cleaner struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
-	Running     bool      `json:"running"`
-	Detect      Detection `json:"detect"`
-	Options     []Option  `json:"options"`
+	Running bool      `json:"running"`
+	Detect  Detection `json:"detect"`
+	Options []Option  `json:"options"`
 }
 
 type Detection struct {
 	Type    	string   `json:"type"` // "file", "always", "dir", "registry"
-	Paths   	[]string `json:"paths"`
+	Paths   	[]string           `json:"paths"`
 	Registry 	[]RegistryCheck `json:"registry"`
 }
 

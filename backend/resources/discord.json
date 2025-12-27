@@ -1,50 +1,52 @@
 {
   "id": "discord",
   "name": "Discord",
-  "description": "Voice and text chat",
-  "icon": "💬",
-  "detection": {
+  "description": "Clean Discord caches and local storage",
+  "running": false,
+  "detect": {
+    "type": "dir",
     "paths": [
-      "%LocalAppData%/Discord",
-      "~/.config/discord",
-      "/Applications/Discord.app"
-    ]
+      "%AppData%\\discord",
+      "%APPDATA%\\discord"
+    ],
+    "registry": []
   },
   "options": [
     {
       "id": "cache",
       "label": "Cache",
-      "description": "Delete Discord cache",
-      "actions": [
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "%AppData%/discord/Cache",
-          "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "%AppData%/discord/Code Cache",
-          "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "~/.config/discord/Cache",
-          "os": ["linux"]
-        }
-      ]
-    },
-    {
-      "id": "logs",
-      "label": "Logs",
-      "description": "Delete log files",
+      "description": "Discord Cache folder",
       "actions": [
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%AppData%/discord/logs",
+          "path": "%AppData%\\discord\\Cache\\*",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "code_cache",
+      "label": "Code Cache",
+      "description": "Discord Code Cache folder",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "%AppData%\\discord\\Code Cache\\*",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "gpu_cache",
+      "label": "GPUCache",
+      "description": "Discord GPU cache",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "%AppData%\\discord\\GPUCache\\*",
           "os": ["windows"]
         }
       ]

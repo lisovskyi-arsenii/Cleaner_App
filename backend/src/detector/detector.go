@@ -1,6 +1,7 @@
-package main
+package detector
 
 import (
+    "backend/src/structures"
     "os"
     "path/filepath"
     "runtime"
@@ -11,14 +12,14 @@ import (
 
 
 // DetectInstalled перевіряє чи програма встановлена
-func DetectInstalled(detection Detection) bool {
+func DetectInstalled(detection structures.Detection) bool {
     if detection.Type == "always" || (len(detection.Paths) == 0 && len(detection.Registry) == 0) {
         return true
     }
 
     // 1. Перевірка шляхів
     for _, path := range detection.Paths {
-        if checkPathExists(path) {
+        if CheckPathExists(path) {
             return true
         }
     }
@@ -26,7 +27,7 @@ func DetectInstalled(detection Detection) bool {
     // 2. Перевірка реєстру (тільки Windows)
     if runtime.GOOS == "windows" {
         for _, reg := range detection.Registry {
-            if isOSSupported(reg.OS) && checkRegistry(reg.Key) {
+            if IsOSSupported(reg.OS) && checkRegistry(reg.Key) {
                 return true
             }
         }
@@ -35,7 +36,7 @@ func DetectInstalled(detection Detection) bool {
     return false
 }
 
-func expandPath(path string) string {
+func ExpandPath(path string) string {
     expandedPath := os.ExpandEnv(path)
 
     if runtime.GOOS == "windows" {
@@ -54,10 +55,10 @@ func expandPath(path string) string {
     return expandedPath
 }
 
-// checkPathExists перевіряє чи існує шлях
-func checkPathExists(path string) bool {
+// CheckPathExists перевіряє чи існує шлях
+func CheckPathExists(path string) bool {
     // Розширити змінні оточення
-    expanded := expandPath(path)
+    expanded := ExpandPath(path)
 
     // Glob для wildcards
     if strings.Contains(expanded, "*") {
@@ -102,8 +103,8 @@ func checkRegistry(keyPath string) bool {
     return true
 }
 
-// Is OS supported for this operation
-func isOSSupported(osList []string) bool {
+// IsOSSupported Is OS supported for this operation
+func IsOSSupported(osList []string) bool {
     if len(osList) == 0 {
         return true
     }

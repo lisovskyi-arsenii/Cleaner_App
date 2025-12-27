@@ -1,45 +1,23 @@
 {
-  "id": "system",
-  "name": "System",
-  "description": "Windows system files",
-  "icon": "🖥️",
-  "detection": {},
+  "id": "windows_system",
+  "name": "Windows System",
+  "description": "System cleanup tasks (safe subset)",
+  "running": false,
+  "detect": {
+    "type": "always",
+    "paths": [],
+    "registry": []
+  },
   "options": [
     {
-      "id": "temp",
-      "label": "Temporary Files",
-      "description": "Delete temporary files from %TEMP%",
+      "id": "user_temp",
+      "label": "User Temp",
+      "description": "User TEMP directory",
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%TEMP%",
-          "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "C:\\Windows\\Temp",
-          "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "/tmp",
-          "os": ["linux"]
-        }
-      ]
-    },
-    {
-      "id": "recycle_bin",
-      "label": "Recycle Bin",
-      "description": "Empty recycle bin",
-      "warning": "This cannot be undone!",
-      "actions": [
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "C:\\$Recycle.Bin",
+          "search": "walk.files",
+          "path": "%TEMP%\\*",
           "os": ["windows"]
         }
       ]
@@ -47,26 +25,26 @@
     {
       "id": "prefetch",
       "label": "Prefetch",
-      "description": "Delete Windows prefetch files",
+      "description": "Windows Prefetch files",
+      "warning": "Deleting Prefetch is usually unnecessary on modern Windows.",
       "actions": [
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "C:\\Windows\\Prefetch",
-          "os": ["windows"],
-          "type": "f"
+          "path": "C:\\\\Windows\\\\Prefetch\\\\*",
+          "os": ["windows"]
         }
       ]
     },
     {
-      "id": "thumbnails",
-      "label": "Thumbnails",
-      "description": "Delete thumbnail cache",
+      "id": "windows_temp",
+      "label": "Windows Temp",
+      "description": "C:\\Windows\\Temp",
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%LocalAppData%/Microsoft/Windows/Explorer",
+          "search": "walk.files",
+          "path": "C:\\\\Windows\\\\Temp\\\\*",
           "os": ["windows"]
         }
       ]

@@ -1,19 +1,17 @@
 {
   "id": "chrome",
   "name": "Google Chrome",
-  "description": "Web browser",
-  "icon": "🌐",
-  "detection": {
+  "description": "Clean Chrome caches and temporary data",
+  "running": false,
+  "detect": {
+    "type": "dir",
     "paths": [
-      "%ProgramFiles%/Google/Chrome/Application/chrome.exe",
-      "%ProgramFiles(x86)%/Google/Chrome/Application/chrome.exe",
-      "%LocalAppData%/Google/Chrome/User Data",
-      "~/.config/google-chrome",
-      "/Applications/Google Chrome.app"
+      "%LocalAppData%\\Google\\Chrome\\User Data",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data"
     ],
     "registry": [
       {
-        "key": "HKLM\\SOFTWARE\\Google\\Chrome",
+        "key": "HKCU\\Software\\Google\\Chrome",
         "os": ["windows"]
       }
     ]
@@ -22,51 +20,52 @@
     {
       "id": "cache",
       "label": "Cache",
-      "description": "Delete web cache",
+      "description": "Default profile cache",
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%LocalAppData%/Google/Chrome/User Data/Default/Cache",
+          "search": "walk.files",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Cache\\*",
           "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "~/.cache/google-chrome",
-          "os": ["linux"]
         }
       ]
     },
     {
-      "id": "cookies",
-      "label": "Cookies",
-      "description": "Delete cookies and site data",
-      "warning": "You will be logged out of all websites",
+      "id": "code_cache",
+      "label": "Code Cache",
+      "description": "Chromium code cache (JS bytecode)",
       "actions": [
         {
           "command": "delete",
-          "search": "glob",
-          "path": "%LocalAppData%/Google/Chrome/User Data/Default/Cookies*",
+          "search": "walk.files",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Code Cache\\*",
           "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "glob",
-          "path": "~/.config/google-chrome/Default/Cookies*",
-          "os": ["linux"]
         }
       ]
     },
     {
-      "id": "history",
-      "label": "History",
-      "description": "Delete browsing history",
+      "id": "gpu_cache",
+      "label": "GPU Cache",
+      "description": "GPUCache directory",
+      "warning": "May cause a slower first start after cleaning.",
       "actions": [
         {
-          "command": "vacuum",
-          "search": "file",
-          "path": "%LocalAppData%/Google/Chrome/User Data/Default/History",
+          "command": "delete",
+          "search": "walk.files",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\GPUCache\\*",
+          "os": ["windows"]
+        }
+      ]
+    },
+    {
+      "id": "shader_cache",
+      "label": "Shader Cache",
+      "description": "ShaderCache directory",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\ShaderCache\\*",
           "os": ["windows"]
         }
       ]
