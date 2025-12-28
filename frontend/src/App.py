@@ -1,20 +1,30 @@
 # Main class App for all components
+import functools
+import threading
+from sys import dllhandle
 
 import customtkinter as ctk
 
 from src.api import backend
 from src.api.backend import get_cleaners
+from src.components.SettingsWindow import SettingsWindow
 from src.components.left_menu import LeftMenu
 from src.components.main_menu import MainMenu
 from src.components.top_menu import TopMenu
 from src.config.settings import *
+from src.functions.wrapper_functions import async_action_clear_checkboxes
+
 
 # головний клас програми
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        # data
         self.cleaners_data = []
+
+        self.settings_window = None
+
 
         # base config for window and widgets
         ctk.set_appearance_mode(APPEARANCE_MODE.value)
@@ -36,8 +46,7 @@ class App(ctk.CTk):
         # load data
         self._load_data()
 
-
-
+    # initialize all ui components
     def _initialize_ui(self):
         # top menu
         self.top_menu = TopMenu(
@@ -60,55 +69,60 @@ class App(ctk.CTk):
         self.main_menu = MainMenu(self)
         self.main_menu.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
-
-
+    # load all data from backend
     def _load_data(self):
-        cleaners = get_cleaners()
+        def load():
+            try:
+                cleaners = get_cleaners()
+                if cleaners:
+                    self.after(0, lambda: self.left_menu.draw_cleaners(cleaners))
+                else:
+                    self.after(0, lambda: self._show_connection_error)
+            except Exception as e:
+                print(f"Error loading data: {e}")
+                self.after(0, lambda: self._show_connection_error)
 
-        if cleaners:
-            self.left_menu.draw_cleaners(cleaners)
-            # TODO - change to logging
-            print(f"Loaded cleaners")
-        else:
-            print("❌ Failed to load cleaners")
+        threading.Thread(target=load, daemon=True).start()
+
+    def _show_connection_error(self):
+        if hasattr(self.main_menu, 'hover_title_main'):
             self.main_menu.hover_title_main.configure(
-                text="❌ Cannot connect to backend",
-                text_color="red"
+                text="❌ Cannot connect to backend", text_color="red"
             )
 
-    def on_widget_hover(self, widget):
-        self.main_menu.show_widget_info(widget)
+    # general function for all backend functions
+    def _execute_backend_action(self, func):
+        selected_data = self.left_menu.get_selected()
+        if selected_data:
+            func(selected_data)
 
-
-    # TODO
     # after button `analyze` is pressed, this function will be invoked
+    @async_action_clear_checkboxes
     def on_analyze_clicked(self):
-        selected_data = self.left_menu.get_selected()
-        print(f"selected_data = {selected_data}")
-        backend.analyze_cleaners(selected_data)
-        self.left_menu.clear_selected_checkboxes()
-        # pass
+        self._execute_backend_action(backend.analyze_cleaners)
 
-    # TODO
+
+    # TODO - change methods for backend request
     # after button `clean` is pressed, this function will be invoked
+    @async_action_clear_checkboxes
     def on_clean_clicked(self):
-        # взяти вибрані чекбокси
-        # та далі відправити на очищування на бекенд
-        selected_data = self.left_menu.get_selected()
-        print(f"selected_data = {selected_data}")
-        self.left_menu.clear_selected_checkboxes()
+        self._execute_backend_action(backend.clean_files)
 
-        # pass
 
     # after button `clear options` is pressed, this function will be invoked
     def on_clear_options_clicked(self):
         self.left_menu.clear_selected_checkboxes()
-        self.left_menu.checkboxes.clear()
-        # update layout
-        self.update_idletasks()
 
+    # when user hovers one of the widgets, show some info about it in main component
+    def on_widget_hover(self, widget):
+        self.main_menu.show_widget_info(widget)
 
     # TODO
     # after button `settings` is pressed, this function will be invoked
     def on_settings_clicked(self):
-        pass
+        if self.settings_window is None or not self.settings_window.winfo_exists():
+            self.settings_window = SettingsWindow(self)
+        else:
+            self.settings_window.focus()
+
+

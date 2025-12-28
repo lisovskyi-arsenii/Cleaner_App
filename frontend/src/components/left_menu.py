@@ -2,6 +2,7 @@
 import customtkinter as ctk
 from src.config.settings import LEFT_MENU_WIDTH, LEFT_MENU_CORNER_RADIUS
 
+
 class LeftMenu(ctk.CTkScrollableFrame):
     def __init__(self, parent, on_hover_callback=None):
         super().__init__(
@@ -12,7 +13,6 @@ class LeftMenu(ctk.CTkScrollableFrame):
 
         self.on_hover_callback = on_hover_callback
         self.checkboxes = []
-
 
     # draw all what can you delete in the left menu
     def draw_cleaners(self, cleaners_data) -> None:
@@ -25,9 +25,8 @@ class LeftMenu(ctk.CTkScrollableFrame):
         for cleaner in cleaners_data:
             self.create_cleaner_section(cleaner)
 
-
     # create section for one of the cleaners
-    def create_cleaner_section(self, cleaner):
+    def create_cleaner_section(self, cleaner) -> None:
         # label for cleaner
         cleaner_label = ctk.CTkLabel(
             self,
@@ -65,11 +64,9 @@ class LeftMenu(ctk.CTkScrollableFrame):
         for option in cleaner["options"]:
             self.create_option_checkbox(cleaner, option)
 
-
         # separator between cleaners
         separator = ctk.CTkFrame(self, height=2, fg_color="gray30")
         separator.pack(fill="x", padx=10, pady=10)
-
 
     # create checkbox for one of the options
     def create_option_checkbox(self, cleaner, option):
@@ -91,7 +88,6 @@ class LeftMenu(ctk.CTkScrollableFrame):
             'widget': option_checkbox,
         })
 
-
     # choose selected checkboxes from list
     def get_selected(self):
         selected = []
@@ -107,8 +103,10 @@ class LeftMenu(ctk.CTkScrollableFrame):
     # clear all selected options
     def clear_selected_checkboxes(self):
         for checkbox in self.checkboxes:
-            checkbox['variable'].set(False)
-
+            if 'variable' in checkbox:
+                checkbox['variable'].set(False)
+            elif 'widget' in checkbox:
+                checkbox['widget'].deselect()
 
     # clear everything
     def clear(self):

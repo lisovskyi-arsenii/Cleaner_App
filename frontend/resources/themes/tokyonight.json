@@ -133,5 +133,23 @@
       "size": 13,
       "weight": "normal"
     }
+  },
+  "CTkOptionMenu": {
+    "corner_radius": 6,
+    "fg_color": ["#3B8ED0", "#7aa2f7"],
+    "button_color": ["#36719F", "#5a7abf"],
+    "button_hover_color": ["#27577D", "#414868"],
+    "text_color": ["#DCE4EE", "#1a1b26"],
+    "text_color_disabled": ["#8B8B8B", "#565f89"]
+  },
+  "CTkComboBox": {
+    "corner_radius": 6,
+    "border_width": 2,
+    "fg_color": ["#F9F9FA", "#1a1b26"],
+    "border_color": ["#979DA4", "#565f89"],
+    "button_color": ["#979DA4", "#565f89"],
+    "button_hover_color": ["#6E7174", "#7aa2f7"],
+    "text_color": ["#000000", "#c0caf5"],
+    "text_color_disabled": ["#8B8B8B", "#565f89"]
   }
 }
