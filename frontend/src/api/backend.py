@@ -2,14 +2,13 @@
 from typing import Any
 import json
 
-# будь-який API запит до бекенду
 import requests
 from requests import Timeout
 
 from src.config.settings import BACKEND_URL, REQUEST_TIMEOUT
 from src.enums.Enums import APIMethods
 
-
+# any request to backend
 def api_request(endpoint: str, method: APIMethods, data=None) -> Any:
     url = f"{BACKEND_URL}{endpoint}"
 
@@ -50,6 +49,7 @@ def api_request(endpoint: str, method: APIMethods, data=None) -> Any:
         print(f"Error: {e}")
         return None
 
+# certain requests
 # get list of cleaners
 def get_cleaners() -> Any:
     return api_request("/api/cleaners", method=APIMethods.GET)
