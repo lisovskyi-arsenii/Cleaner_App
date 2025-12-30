@@ -1,7 +1,5 @@
 # Main class App for all components
-import functools
 import threading
-from sys import dllhandle
 
 import customtkinter as ctk
 
@@ -21,8 +19,9 @@ class App(ctk.CTk):
         super().__init__()
 
         # data
+        # all cleaners which were fetched from backend
         self.cleaners_data = []
-
+        # settings window
         self.settings_window = None
 
 
@@ -84,6 +83,7 @@ class App(ctk.CTk):
 
         threading.Thread(target=load, daemon=True).start()
 
+    # show message `connection error` if failed to fetch data
     def _show_connection_error(self):
         if hasattr(self.main_menu, 'hover_title_main'):
             self.main_menu.hover_title_main.configure(
