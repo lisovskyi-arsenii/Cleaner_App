@@ -5,12 +5,13 @@ import customtkinter as ctk
 
 from src.api import backend
 from src.api.backend import get_cleaners
-from src.components.SettingsWindow import SettingsWindow
+from src.components.settings_window import SettingsWindow
 from src.components.left_menu import LeftMenu
 from src.components.main_menu import MainMenu
 from src.components.top_menu import TopMenu
 from src.config.settings import *
 from src.functions.wrapper_functions import async_action_clear_checkboxes
+
 
 
 # головний клас програми
