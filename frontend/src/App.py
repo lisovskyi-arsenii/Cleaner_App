@@ -13,6 +13,7 @@ from src.config.settings import *
 from src.functions.wrapper_functions import async_action_clear_checkboxes
 
 
+
 # головний клас програми
 class App(ctk.CTk):
     def __init__(self):
