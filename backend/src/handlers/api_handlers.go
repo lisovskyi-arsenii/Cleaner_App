@@ -132,11 +132,9 @@ func analyzeRequests(requests []structures.CleanRequest,
 		} (request, actions)
 	}
 
-	go func() {
-		wg.Wait()
-		close(resultsChan)
-		close(semaphore)
-	}()
+	wg.Wait()
+	close(resultsChan)
+	close(semaphore)
 
 	for item := range resultsChan {
 		response.Items = append(response.Items, item)
@@ -179,11 +177,9 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 		}(action, 0)
 	}
 
-	go func() {
-		wg.Wait()
-		close(resultChan)
-		close(semaphore)
-	}()
+	wg.Wait()
+	close(resultChan)
+	close(semaphore)
 
 	for result := range resultChan {
 		size += result.Size
@@ -251,10 +247,8 @@ func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 		}(match)
 	}
 
-	go func() {
-		wg.Wait()
-		close(semaphore)
-	}()
+	wg.Wait()
+	close(semaphore)
 
 	return size, fileCount, paths
 }
