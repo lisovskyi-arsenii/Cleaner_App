@@ -6,11 +6,17 @@ import (
 	"backend/src/structures"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 )
+
+const maxPathsToCollect = 10
+var workers = runtime.NumCPU() * 2
 
 func GetCleaners(w http.ResponseWriter, _ *http.Request) {
 	allCleaners, err := cleaners_util.LoadAllCleaners()
@@ -30,8 +36,7 @@ func GetCleaners(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&installedCleaners)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(&installedCleaners); err != nil {
 		fmt.Printf("Error encoding cleaners: %v\n", err)
 		http.Error(w, fmt.Sprintf("Error encoding cleaners: %v", err),
 			http.StatusInternalServerError)
@@ -69,11 +74,11 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	response := analyzeRequests(requests, cleanerMap)
+
 	if err := json.NewEncoder(w).Encode(&response); err != nil {
 		fmt.Printf("Error encoding cleaners: %v\n", err)
-		http.Error(w, "Error encoding response: %v", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -104,13 +109,34 @@ func analyzeRequests(requests []structures.CleanRequest,
 		Items: make([]structures.AnalyzeItem, 0),
 	}
 
+	semaphore := make(chan struct{}, workers)
+
+	var wg sync.WaitGroup
+	resultsChan := make(chan structures.AnalyzeItem, len(requests))
+
 	for _, request := range requests {
 		actions, ok := cleanerMap[request.CleanerID][request.OptionID]
 		if !ok {
 			continue
 		}
 
-		item := analyzeActions(request, actions)
+		wg.Add(1)
+		semaphore <- struct{}{} // block if max workers reached
+
+		go func(request structures.CleanRequest, actions []structures.Action) {
+			defer wg.Done() // decrease the counter when the goroutine completes
+			defer func() { <-semaphore }() // clear the semaphore slot when done
+
+			item := analyzeActions(request, actions)
+			resultsChan	<- item
+		} (request, actions)
+	}
+
+	wg.Wait()
+	close(resultsChan)
+	close(semaphore)
+
+	for item := range resultsChan {
 		response.Items = append(response.Items, item)
 		response.TotalSize += item.Size
 		response.TotalFiles += item.FileCount
@@ -124,15 +150,41 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 	var fileCount uint64 = 0
 	var foundPaths []string
 
+	semaphore := make(chan struct{}, workers)
+
+	var wg sync.WaitGroup
+	resultChan := make(chan structures.ActionResult, len(actions))
+
 	for _, action := range actions {
 		if !detector.IsOSSupported(action.OS) {
 			continue
 		}
 
-		actionSize, actionCount, actionPaths := processAction(action, len(foundPaths))
-		size += actionSize
-		fileCount += actionCount
-		foundPaths = append(foundPaths, actionPaths...)
+		wg.Add(1)
+		semaphore <- struct{}{}
+
+		go func(action structures.Action, currentPathCount int) {
+			defer wg.Done()
+			defer func() { <-semaphore }()
+
+			actionSize, actionCount, actionPaths := processAction(action, currentPathCount)
+
+			resultChan <- structures.ActionResult{
+				Size:      actionSize,
+				FileCount: actionCount,
+				Paths:     actionPaths,
+			}
+		}(action, 0)
+	}
+
+	wg.Wait()
+	close(resultChan)
+	close(semaphore)
+
+	for result := range resultChan {
+		size += result.Size
+		fileCount += result.FileCount
+		foundPaths = append(foundPaths, result.Paths...)
 	}
 
 	return structures.AnalyzeItem{
@@ -151,9 +203,9 @@ func processAction(action structures.Action, currentPathCount int) (uint64, uint
 		return processGlobAction(searchPath, currentPathCount)
 	} else if action.Search == "walk.files" {
 		return processWalkAction(searchPath, currentPathCount)
-	} else {
-		return processFileAction(searchPath)
 	}
+
+	return processFileAction(searchPath)
 }
 
 func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
@@ -167,50 +219,101 @@ func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 		return 0, 0, nil
 	}
 
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	semaphore := make(chan struct{}, workers)
+
 	for _, match := range matches {
-		if info, err := os.Stat(match); err == nil && !info.IsDir() {
+		wg.Add(1)
+		semaphore <- struct{}{}
+
+		go func(match string) {
+			defer wg.Done()
+			defer func() { <-semaphore }()
+
+			info, err := os.Stat(match)
+			if err != nil || info.IsDir() {
+				return
+			}
+
+			mutex.Lock()
 			size += uint64(info.Size())
 			fileCount++
-			if currentPathCount+len(paths) < 10 {
+			if currentPathCount+len(paths) < maxPathsToCollect {
 				paths = append(paths, match)
 			}
-		}
+			mutex.Unlock()
+
+		}(match)
 	}
+
+	wg.Wait()
+	close(semaphore)
 
 	return size, fileCount, paths
 }
 
 func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
-	var size uint64 = 0
-	var fileCount uint64 = 0
+	var size, fileCount uint64
 	var paths []string
 
-	err := filepath.WalkDir(searchPath, func(path string, d os.DirEntry, err error) error {
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	fileChan := make(chan string, 100)
+
+
+	// start worker goroutines
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go processFileWorker(fileChan, &size, &fileCount, &paths, currentPathCount, &mutex, &wg)
+	}
+
+	collectFilePaths(searchPath, fileChan)
+
+	wg.Wait()
+	close(fileChan)
+
+	return size, fileCount, paths
+}
+
+func processFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
+	paths *[]string, currentPathCount int, mutex *sync.Mutex, wg *sync.WaitGroup) {
+
+	defer wg.Done()
+
+	for path := range fileChan {
+		info, err := os.Stat(path)
+		if err != nil || info.IsDir() {
+			continue
+		}
+
+		mutex.Lock()
+		*size += uint64(info.Size())
+		*fileCount++
+		if currentPathCount+len(*paths) < maxPathsToCollect {
+			*paths = append(*paths, path)
+		}
+		mutex.Unlock()
+	}
+}
+
+func collectFilePaths(searchPath string, fileChan chan string) {
+	err := filepath.WalkDir(searchPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
+
 		if d.IsDir() {
 			return nil
 		}
 
-		info, err := d.Info()
-		if err != nil {
-			return nil
-		}
-
-		size += uint64(info.Size())
-		fileCount++
-		if currentPathCount+len(paths) < 10 {
-			paths = append(paths, path)
-		}
+		fileChan <- path
 		return nil
 	})
 
 	if err != nil {
 		fmt.Printf("Error walking directory %s: %v\n", searchPath, err)
 	}
-
-	return size, fileCount, paths
 }
 
 func processFileAction(searchPath string) (uint64, uint64, []string) {

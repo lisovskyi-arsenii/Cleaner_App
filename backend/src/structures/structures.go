@@ -39,6 +39,12 @@ type Action struct {
 	OS 	    []string 	`json:"os,omitempty"`
 }
 
+type ActionResult struct {
+	Size      uint64
+	FileCount uint64
+	Paths     []string
+}
+
 
 // structures for requests
 
