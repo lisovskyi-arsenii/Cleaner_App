@@ -1,5 +1,6 @@
 # Main class App for all components
 import threading
+from pathlib import Path
 
 import customtkinter as ctk
 
@@ -26,9 +27,12 @@ class App(ctk.CTk):
         self.settings_window = None
 
 
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        THEME_DIRECTORY = BASE_DIR / "resources" / "themes"
+
         # base config for window and widgets
         ctk.set_appearance_mode(APPEARANCE_MODE.value)
-        ctk.set_default_color_theme(f"{THEME_DIRECTORY}/tokyonight.json")
+        ctk.set_default_color_theme(str(THEME_DIRECTORY / "tokyonight.json"))
 
         # window setup
         self.title(WINDOW_TITLE)
