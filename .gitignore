@@ -1,0 +1,28 @@
+# Python (frontend)
+frontend/__pycache__/
+frontend/*.pyc
+frontend/.venv/
+frontend/venv/
+frontend/.env
+
+# Go (backend)
+backend/*.exe
+backend/src/*.exe
+backend/*.test
+backend/.env
+
+# IDE (загальне)
+.idea/
+.vscode/
+*.swp
+
+# OS (загальне)
+.DS_Store
+Thumbs.db
+
+# Logs (загальне)
+*.log
+
+# Build artifacts
+build/
+dist/
