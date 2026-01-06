@@ -1,11 +1,10 @@
 # Main class App for all components
 import threading
-from pathlib import Path
-
 import customtkinter as ctk
 
 from src.api import backend
 from src.api.backend import get_cleaners
+from src.components.menu_bar import MenuBar
 from src.components.settings_window import SettingsWindow
 from src.components.left_menu import LeftMenu
 from src.components.main_menu import MainMenu
@@ -49,6 +48,9 @@ class App(ctk.CTk):
 
     # initialize all ui components
     def _initialize_ui(self):
+        # menu bar
+        self.menu_bar = MenuBar(self)
+        
         # top menu
         self.top_menu = TopMenu(self, on_preview=self.on_preview_clicked, on_clean=self.on_clean_clicked,
                                 on_clear_options=self.on_clear_options_clicked, on_settings=self.on_settings_clicked)

@@ -108,14 +108,3 @@ class MainMenu(ctk.CTkFrame):
         scrollable.pack(fill="both", expand=True, padx=10, pady=10)
 
 
-    def restore_hover_view(self):
-        """Повертає view до hover стану"""
-        self.showing_results = False
-
-        # Очистити результати
-        for widget in self.winfo_children():
-            widget.destroy()
-
-        # Відтворити hover widgets
-        self._create_hover_widgets()
-

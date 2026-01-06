@@ -1,4 +1,5 @@
 # Top menu component
+
 import customtkinter as ctk
 from PIL import Image
 from src.config.settings import *
@@ -14,29 +15,31 @@ class TopMenu(ctk.CTkFrame):
 
         self.grid_propagate(False)
 
+        TOP_ICONS_DIRECTORY = ICONS_DIRECTORY.joinpath("top_menu_icons")
+
         # icons
         # clean icon
         self.btn_clean_icon = ctk.CTkImage(
-            light_image=Image.open(ICONS_DIRECTORY / "clean.png"),
-            dark_image=Image.open(ICONS_DIRECTORY / "clean.png"),
+            light_image=Image.open(TOP_ICONS_DIRECTORY / "clean.png"),
+            dark_image=Image.open(TOP_ICONS_DIRECTORY / "clean.png"),
         )
 
         # preview icon
         self.btn_preview_icon = ctk.CTkImage(
-            light_image=Image.open(ICONS_DIRECTORY / "preview.png"),
-            dark_image=Image.open(ICONS_DIRECTORY / "preview.png"),
+            light_image=Image.open(TOP_ICONS_DIRECTORY / "preview.png"),
+            dark_image=Image.open(TOP_ICONS_DIRECTORY / "preview.png"),
         )
 
         # unselect icon
         self.btn_unselect_icon = ctk.CTkImage(
-            light_image=Image.open(ICONS_DIRECTORY / "unselect.png"),
-            dark_image=Image.open(ICONS_DIRECTORY / "unselect.png"),
+            light_image=Image.open(TOP_ICONS_DIRECTORY / "unselect.png"),
+            dark_image=Image.open(TOP_ICONS_DIRECTORY / "unselect.png"),
         )
 
         # settings icon
         self.btn_settings_icon = ctk.CTkImage(
-            light_image=Image.open(ICONS_DIRECTORY / "settings.png"),
-            dark_image=Image.open(ICONS_DIRECTORY / "settings.png"),
+            light_image=Image.open(TOP_ICONS_DIRECTORY / "settings.png"),
+            dark_image=Image.open(TOP_ICONS_DIRECTORY / "settings.png"),
         )
 
         # button `clean`
