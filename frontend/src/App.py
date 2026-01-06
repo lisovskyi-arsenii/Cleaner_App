@@ -99,7 +99,10 @@ class App(ctk.CTk):
     def _execute_backend_action(self, func):
         selected_data = self.left_menu.get_selected()
         if selected_data:
-            func(selected_data)
+            results = func(selected_data)
+
+            if results:
+                self.main_menu.show_results(results)
 
     # after button `analyze` is pressed, this function will be invoked
     @async_action_clear_checkboxes

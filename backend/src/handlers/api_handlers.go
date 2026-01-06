@@ -110,7 +110,6 @@ func analyzeRequests(requests []structures.CleanRequest,
 	}
 
 	semaphore := make(chan struct{}, workers)
-
 	var wg sync.WaitGroup
 	resultsChan := make(chan structures.AnalyzeItem, len(requests))
 
@@ -132,9 +131,11 @@ func analyzeRequests(requests []structures.CleanRequest,
 		} (request, actions)
 	}
 
-	wg.Wait()
-	close(resultsChan)
-	close(semaphore)
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+		close(semaphore)
+	}()
 
 	for item := range resultsChan {
 		response.Items = append(response.Items, item)
@@ -151,7 +152,6 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 	var foundPaths []string
 
 	semaphore := make(chan struct{}, workers)
-
 	var wg sync.WaitGroup
 	resultChan := make(chan structures.ActionResult, len(actions))
 
@@ -163,23 +163,25 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 		wg.Add(1)
 		semaphore <- struct{}{}
 
-		go func(action structures.Action, currentPathCount int) {
+		go func(action structures.Action) {
 			defer wg.Done()
 			defer func() { <-semaphore }()
 
-			actionSize, actionCount, actionPaths := processAction(action, currentPathCount)
+			actionSize, actionCount, actionPaths := processAction(action, 0)
 
 			resultChan <- structures.ActionResult{
 				Size:      actionSize,
 				FileCount: actionCount,
 				Paths:     actionPaths,
 			}
-		}(action, 0)
+		}(action)
 	}
 
-	wg.Wait()
-	close(resultChan)
-	close(semaphore)
+	go func() {
+		wg.Wait()
+		close(resultChan)
+		close(semaphore)
+	}()
 
 	for result := range resultChan {
 		size += result.Size
@@ -270,8 +272,8 @@ func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64,
 
 	collectFilePaths(searchPath, fileChan)
 
-	wg.Wait()
 	close(fileChan)
+	wg.Wait()
 
 	return size, fileCount, paths
 }
