@@ -56,7 +56,7 @@ def get_cleaners() -> Any:
 
 
 # analyze cleaners
-def analyze_cleaners(selected_options) -> Any:
+def preview_cleaners(selected_options) -> Any:
     return api_request("/api/analyze", method=APIMethods.POST, data=selected_options)
 
 

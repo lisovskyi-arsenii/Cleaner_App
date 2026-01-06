@@ -17,7 +17,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%TEMP%\\*",
+          "path": "%TEMP%",
           "os": ["windows"]
         }
       ]
@@ -31,7 +31,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "C:\\\\Windows\\\\Prefetch\\\\*",
+          "path": "C:\\Windows\\Prefetch",
           "os": ["windows"]
         }
       ]
@@ -44,7 +44,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "C:\\\\Windows\\\\Temp\\\\*",
+          "path": "C:\\Windows\\Temp",
           "os": ["windows"]
         }
       ]

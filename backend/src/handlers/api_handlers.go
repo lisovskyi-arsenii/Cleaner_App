@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-const maxPathsToCollect = 10
+const maxPathsToCollect = 500
 var workers = runtime.NumCPU() * 2
 
 func GetCleaners(w http.ResponseWriter, _ *http.Request) {
@@ -204,7 +204,7 @@ func processAction(action structures.Action, currentPathCount int) (uint64, uint
 	if action.Search == "glob" || strings.Contains(searchPath, "*") {
 		return processGlobAction(searchPath, currentPathCount)
 	} else if action.Search == "walk.files" {
-		return processWalkAction(searchPath, currentPathCount)
+		return processWalkAction(searchPath)
 	}
 
 	return processFileAction(searchPath)
@@ -255,7 +255,7 @@ func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 	return size, fileCount, paths
 }
 
-func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
+func processWalkAction(searchPath string) (uint64, uint64, []string) {
 	var size, fileCount uint64
 	var paths []string
 
@@ -267,7 +267,7 @@ func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64,
 	// start worker goroutines
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
-		go processFileWorker(fileChan, &size, &fileCount, &paths, currentPathCount, &mutex, &wg)
+		go processFileWorker(fileChan, &size, &fileCount, &paths, &mutex, &wg)
 	}
 
 	collectFilePaths(searchPath, fileChan)
@@ -279,7 +279,7 @@ func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64,
 }
 
 func processFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
-	paths *[]string, currentPathCount int, mutex *sync.Mutex, wg *sync.WaitGroup) {
+	paths *[]string, mutex *sync.Mutex, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 
@@ -292,7 +292,7 @@ func processFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
 		mutex.Lock()
 		*size += uint64(info.Size())
 		*fileCount++
-		if currentPathCount+len(*paths) < maxPathsToCollect {
+		if len(*paths) < maxPathsToCollect {
 			*paths = append(*paths, path)
 		}
 		mutex.Unlock()

@@ -27,9 +27,6 @@ class App(ctk.CTk):
         self.settings_window = None
 
 
-        BASE_DIR = Path(__file__).resolve().parent.parent
-        THEME_DIRECTORY = BASE_DIR / "resources" / "themes"
-
         # base config for window and widgets
         ctk.set_appearance_mode(APPEARANCE_MODE.value)
         ctk.set_default_color_theme(str(THEME_DIRECTORY / "tokyonight.json"))
@@ -53,13 +50,8 @@ class App(ctk.CTk):
     # initialize all ui components
     def _initialize_ui(self):
         # top menu
-        self.top_menu = TopMenu(
-            self,
-            on_analyze=self.on_analyze_clicked,
-            on_clean=self.on_clean_clicked,
-            on_clear_options=self.on_clear_options_clicked,
-            on_settings=self.on_settings_clicked,
-        )
+        self.top_menu = TopMenu(self, on_preview=self.on_preview_clicked, on_clean=self.on_clean_clicked,
+                                on_clear_options=self.on_clear_options_clicked, on_settings=self.on_settings_clicked)
         self.top_menu.grid(row=0, column=0, columnspan=2, sticky="ew")
 
         # left menu
@@ -106,8 +98,8 @@ class App(ctk.CTk):
 
     # after button `analyze` is pressed, this function will be invoked
     @async_action_clear_checkboxes
-    def on_analyze_clicked(self):
-        self._execute_backend_action(backend.analyze_cleaners)
+    def on_preview_clicked(self):
+        self._execute_backend_action(backend.preview_cleaners)
 
 
     # TODO - change methods for backend request

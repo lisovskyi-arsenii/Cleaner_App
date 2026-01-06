@@ -2,13 +2,12 @@
   "id": "steam",
   "name": "Steam",
   "description": "Gaming platform",
-  "icon": "🎮",
-  "detection": {
+  "running": false,
+  "detect": {
+    "type": "file",
     "paths": [
-      "%ProgramFiles(x86)%/Steam/steam.exe",
-      "%ProgramFiles%/Steam/steam.exe",
-      "~/.steam",
-      "~/.local/share/Steam"
+      "%ProgramFiles(x86)%\\Steam\\steam.exe",
+      "%ProgramFiles%\\Steam\\steam.exe"
     ],
     "registry": [
       {
@@ -25,8 +24,8 @@
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%ProgramFiles(x86)%/Steam/steamapps/shadercache",
+          "search": "walk.files",
+          "path": "%ProgramFiles(x86)%\\Steam\\steamapps\\shadercache",
           "os": ["windows"]
         }
       ]
@@ -39,7 +38,7 @@
         {
           "command": "delete",
           "search": "glob",
-          "path": "%ProgramFiles(x86)%/Steam/logs/*.log",
+          "path": "%ProgramFiles(x86)%\\Steam\\logs\\*.log",
           "os": ["windows"]
         }
       ]
@@ -52,8 +51,8 @@
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%ProgramFiles(x86)%/Steam/appcache/httpcache",
+          "search": "walk.files",
+          "path": "%ProgramFiles(x86)%\\Steam\\appcache\\httpcache",
           "os": ["windows"]
         }
       ]

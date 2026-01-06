@@ -1,11 +1,10 @@
 # Top menu component
-
 import customtkinter as ctk
-
+from PIL import Image
 from src.config.settings import *
 
 class TopMenu(ctk.CTkFrame):
-    def __init__(self, parent, on_analyze=None, on_clean=None,
+    def __init__(self, parent, on_preview=None, on_clean=None,
                  on_clear_options=None, on_settings=None):
         super().__init__(
             parent,
@@ -15,42 +14,69 @@ class TopMenu(ctk.CTkFrame):
 
         self.grid_propagate(False)
 
+        # icons
+        # clean icon
+        self.btn_clean_icon = ctk.CTkImage(
+            light_image=Image.open(ICONS_DIRECTORY / "clean.png"),
+            dark_image=Image.open(ICONS_DIRECTORY / "clean.png"),
+        )
+
+        # preview icon
+        self.btn_preview_icon = ctk.CTkImage(
+            light_image=Image.open(ICONS_DIRECTORY / "preview.png"),
+            dark_image=Image.open(ICONS_DIRECTORY / "preview.png"),
+        )
+
+        # unselect icon
+        self.btn_unselect_icon = ctk.CTkImage(
+            light_image=Image.open(ICONS_DIRECTORY / "unselect.png"),
+            dark_image=Image.open(ICONS_DIRECTORY / "unselect.png"),
+        )
+
+        # settings icon
+        self.btn_settings_icon = ctk.CTkImage(
+            light_image=Image.open(ICONS_DIRECTORY / "settings.png"),
+            dark_image=Image.open(ICONS_DIRECTORY / "settings.png"),
+        )
+
         # button `clean`
         self.btn_clean = ctk.CTkButton(
             self,
-            text="clean",
+            text="Clean",
+            image=self.btn_clean_icon,
             width=TOP_MENU_BUTTON_CLEAN_WIDTH,
             height=TOP_MENU_BUTTON_CLEAN_HEIGHT,
             command=on_clean
         )
         self.btn_clean.pack(side="left", padx=10, pady=10)
 
-
-        # TODO
-        # button `analyze`
-        self.btn_analyze = ctk.CTkButton(
+        # button `preview`
+        self.btn_preview = ctk.CTkButton(
             self,
-            text="analyze",
-            width=TOP_MENU_BUTTON_ANALYZE_WIDTH,
-            height=TOP_MENU_BUTTON_ANALYZE_HEIGHT,
-            command=on_analyze
+            text="Preview",
+            image=self.btn_preview_icon,
+            width=TOP_MENU_BUTTON_PREVIEW_WIDTH,
+            height=TOP_MENU_BUTTON_PREVIEW_HEIGHT,
+            command=on_preview
         )
-        self.btn_analyze.pack(side="left", padx=10, pady=10)
+        self.btn_preview.pack(side="left", padx=10, pady=10)
 
         # button `clear_options`
-        self.btn_clear_option = ctk.CTkButton(
+        self.btn_unselect = ctk.CTkButton(
             self,
-            text="clear options",
-            width=TOP_MENU_BUTTON_CLEAR_OPTIONS_WIDTH,
-            height=TOP_MENU_BUTTON_CLEAR_OPTIONS_HEIGHT,
+            text="Unselect",
+            image=self.btn_unselect_icon,
+            width=TOP_MENU_BUTTON_UNSELECT_WIDTH,
+            height=TOP_MENU_BUTTON_UNSELECT_HEIGHT,
             command=on_clear_options
         )
-        self.btn_clear_option.pack(side="left", padx=10, pady=10)
+        self.btn_unselect.pack(side="left", padx=10, pady=10)
 
         # button `settings`
         self.btn_settings = ctk.CTkButton(
             self,
-            text="settings",
+            text="Settings",
+            image=self.btn_settings_icon,
             width=TOP_MENU_BUTTON_SETTINGS_WIDTH,
             height=TOP_MENU_BUTTON_SETTINGS_HEIGHT,
             command=on_settings
