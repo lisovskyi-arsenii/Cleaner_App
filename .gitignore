@@ -1,28 +1,29 @@
-# Python (frontend)
-frontend/__pycache__/
-frontend/*.pyc
-frontend/.venv/
-frontend/venv/
-frontend/.env
-
-# Go (backend)
-backend/*.exe
-backend/src/*.exe
-backend/*.test
-backend/.env
-
-# IDE (загальне)
+# IDE
 .idea/
 .vscode/
 *.swp
+*.swo
 
-# OS (загальне)
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Logs (загальне)
+# Application
+resources/*.json  # Only if these are generated
 *.log
-
-# Build artifacts
-build/
-dist/

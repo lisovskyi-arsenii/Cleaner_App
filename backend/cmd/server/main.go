@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/src/controller/handlers"
+	"backend/src/logger"
 	"backend/src/middleware"
 	"backend/src/routes"
 	"fmt"
@@ -51,6 +52,7 @@ func main() {
 
 	// setup logger for whole project
 	logLevel := getLogLevel()
+	logger.SetupLogger("./logs", logLevel)
 
 	slog.Info("Environment loaded", "level", logLevel.String())
 
