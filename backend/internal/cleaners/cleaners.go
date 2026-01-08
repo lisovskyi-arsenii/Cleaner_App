@@ -1,8 +1,8 @@
-package cleaners_util
+package cleaners
 
 import (
-	"backend/src/detector"
-	"backend/src/structures"
+	"backend/internal/detector"
+	"backend/internal/models"
 	"encoding/json"
 	"log/slog"
 	"os"

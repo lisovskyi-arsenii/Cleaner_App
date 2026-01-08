@@ -4,13 +4,15 @@
 package handlers
 
 import (
-	"backend/src/cleaners_util"
-	"backend/src/service"
-	"backend/src/structures"
+	"backend/internal/cleaners"
+	"backend/internal/models"
+	"backend/internal/service"
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,14 +24,17 @@ import (
 //
 // GET /api/cleaners
 func GetCleaners(c *gin.Context) {
-	allCleaners, err := cleaners_util.LoadAllCleaners()
+	queryContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	allCleaners, err := cleaners.LoadAllCleaners()
 	if err != nil {
 		slog.Error("Error loading all cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading cleaners: %v", err)})
 		return
 	}
 
-	installedCleaners, err := cleaners_util.FilterOnlyInstalledCleaners(allCleaners)
+	installedCleaners, err := cleaners.FilterOnlyInstalledCleaners(allCleaners)
 	if err != nil {
 		slog.Error("Error filtering installed cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error filtering installed cleaners: %v", err)})
