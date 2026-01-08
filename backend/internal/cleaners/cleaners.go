@@ -4,7 +4,7 @@ import (
 	"backend/src/detector"
 	"backend/src/structures"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -14,7 +14,7 @@ func LoadAllCleaners() ([]structures.Cleaner, error) {
 
 	files, err := os.ReadDir(cleanersDir)
 	if err != nil {
-		fmt.Printf("Error reading dir %s: %v\n", cleanersDir, err)
+		slog.Error("Error reading dir %s: %v\n", cleanersDir, err)
 		return nil, err
 	}
 
@@ -29,21 +29,21 @@ func LoadAllCleaners() ([]structures.Cleaner, error) {
 
 		data, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Printf("Error reading file %s: %v\n", filePath, err)
+			slog.Error("Error reading file %s: %v\n", filePath, err)
 			continue
 		}
 
 		var cleaner structures.Cleaner
 		if err := json.Unmarshal(data, &cleaner); err != nil {
-			fmt.Printf("Error parsing file %s: %v\n", filePath, err)
+			slog.Error("Error parsing file %s: %v\n", filePath, err)
 			continue
 		}
 
 		cleaners = append(cleaners, cleaner)
-		fmt.Printf("Loaded cleaner %s from %s\n", cleaner.Name, file.Name())
+		slog.Info("Loaded cleaner %s from %s\n", cleaner.Name, file.Name())
 	}
 
-	fmt.Printf("Total cleaners: %d\n", len(cleaners))
+	slog.Debug("Total cleaners: %d\n", len(cleaners))
 	return cleaners, nil
 }
 

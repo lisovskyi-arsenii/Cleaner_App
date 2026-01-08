@@ -1,13 +1,12 @@
-package handlers
+package service
 
 import (
 	"backend/src/cleaners_util"
 	"backend/src/detector"
 	"backend/src/structures"
-	"encoding/json"
-	"fmt"
 	"io/fs"
-	"net/http"
+	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,81 +14,22 @@ import (
 	"sync"
 )
 
-const maxPathsToCollect = 10
+// maxPathsToCollect limits the number of file paths collected during the reviewing phase
+const maxPathsToCollect = 500
+
+// workers determines the concurrency level of operations, based on the CPU count
 var workers = runtime.NumCPU() * 2
 
-func GetCleaners(w http.ResponseWriter, _ *http.Request) {
+
+// LoadCleanerMap transforms the flat list of cleaners into a nested map structure.
+//
+// It loads all definitions via cleaners_util and organizes them for O(1) lookup
+// during the analysis phase.
+// Returns a map keyed by [CleanerID][OptionID] containing the list of Actions.
+func LoadCleanerMap() (map[string]map[string][]structures.Action, error) {
 	allCleaners, err := cleaners_util.LoadAllCleaners()
 	if err != nil {
-		fmt.Printf("Error loading all cleaners: %v\n", err)
-		http.Error(w, fmt.Sprintf("Error loading cleaners: %v", err),
-			http.StatusInternalServerError)
-		return
-	}
-
-	installedCleaners, err := cleaners_util.FilterOnlyInstalledCleaners(allCleaners)
-	if err != nil {
-		fmt.Printf("Error filtering installed cleaners: %v\n", err)
-		http.Error(w, fmt.Sprintf("Error filtering installed cleaners: %v", err),
-			http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(&installedCleaners); err != nil {
-		fmt.Printf("Error encoding cleaners: %v\n", err)
-		http.Error(w, fmt.Sprintf("Error encoding cleaners: %v", err),
-			http.StatusInternalServerError)
-		return
-	}
-
-	for _, cleaner := range installedCleaners {
-		fmt.Printf("Found cleaner %s\n", cleaner.Name)
-		fmt.Printf("Option ID: %s\n", cleaner.ID)
-		fmt.Printf("Option Name: %s\n", cleaner.Name)
-		fmt.Printf("Option Description: %s\n", cleaner.Description)
-	}
-}
-
-func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
-	if r.Method == "OPTIONS" {
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		return
-	}
-
-	var requests []structures.CleanRequest
-	if err := json.NewDecoder(r.Body).Decode(&requests); err != nil {
-		http.Error(w, "Invalid json", http.StatusBadRequest)
-		return
-	}
-
-	fmt.Println("DEBUG: Cleaners - ", requests)
-
-	cleanerMap, err := loadCleanerMap()
-	if err != nil {
-		http.Error(w, "Error loading cleaners", http.StatusInternalServerError)
-		return
-	}
-
-	response := analyzeRequests(requests, cleanerMap)
-
-	if err := json.NewEncoder(w).Encode(&response); err != nil {
-		fmt.Printf("Error encoding cleaners: %v\n", err)
-		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Println("DEBUG: AnalyzeResponse - ", *response)
-}
-
-
-func loadCleanerMap() (map[string]map[string][]structures.Action, error) {
-	allCleaners, err := cleaners_util.LoadAllCleaners()
-	if err != nil {
-		fmt.Printf("Error loading all cleaners: %v\n", err)
+		slog.Error("Error loading all cleaners: %v\n", err)
 		return nil, err
 	}
 
@@ -103,14 +43,19 @@ func loadCleanerMap() (map[string]map[string][]structures.Action, error) {
 	return cleanerMap, nil
 }
 
-func analyzeRequests(requests []structures.CleanRequest,
-		cleanerMap map[string]map[string][]structures.Action) *structures.AnalyzeResponse {
+// AnalyzeRequests serves as the entry point for processing a batch of cleanup requests.
+//
+// It orchestrates the analysis by:
+// 1. Validating that the requested CleanerID and OptionID exist.
+// 2. Spinning up concurrent workers (limited by the 'workers' global) to process requests.
+// 3. Aggregating the results (Size, FileCount) into a single response.
+func AnalyzeRequests(requests []structures.CleanRequest,
+	cleanerMap map[string]map[string][]structures.Action) *structures.AnalyzeResponse {
 	response := &structures.AnalyzeResponse{
 		Items: make([]structures.AnalyzeItem, 0),
 	}
 
 	semaphore := make(chan struct{}, workers)
-
 	var wg sync.WaitGroup
 	resultsChan := make(chan structures.AnalyzeItem, len(requests))
 
@@ -127,14 +72,16 @@ func analyzeRequests(requests []structures.CleanRequest,
 			defer wg.Done() // decrease the counter when the goroutine completes
 			defer func() { <-semaphore }() // clear the semaphore slot when done
 
-			item := analyzeActions(request, actions)
+			item := AnalyzeActions(request, actions)
 			resultsChan	<- item
 		} (request, actions)
 	}
 
-	wg.Wait()
-	close(resultsChan)
-	close(semaphore)
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+		close(semaphore)
+	}()
 
 	for item := range resultsChan {
 		response.Items = append(response.Items, item)
@@ -145,13 +92,16 @@ func analyzeRequests(requests []structures.CleanRequest,
 	return response
 }
 
-func analyzeActions(request structures.CleanRequest, actions []structures.Action) structures.AnalyzeItem {
+// AnalyzeActions processes the specific actions (paths/globs) associated with a single cleaner option.
+//
+// It checks OS compatibility for each action and executes them concurrently using
+// the same worker-pool pattern as AnalyzeRequests.
+func AnalyzeActions(request structures.CleanRequest, actions []structures.Action) structures.AnalyzeItem {
 	var size uint64 = 0
 	var fileCount uint64 = 0
 	var foundPaths []string
 
 	semaphore := make(chan struct{}, workers)
-
 	var wg sync.WaitGroup
 	resultChan := make(chan structures.ActionResult, len(actions))
 
@@ -163,23 +113,25 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 		wg.Add(1)
 		semaphore <- struct{}{}
 
-		go func(action structures.Action, currentPathCount int) {
+		go func(action structures.Action) {
 			defer wg.Done()
 			defer func() { <-semaphore }()
 
-			actionSize, actionCount, actionPaths := processAction(action, currentPathCount)
+			actionSize, actionCount, actionPaths := ProcessAction(action, 0)
 
 			resultChan <- structures.ActionResult{
 				Size:      actionSize,
 				FileCount: actionCount,
 				Paths:     actionPaths,
 			}
-		}(action, 0)
+		}(action)
 	}
 
-	wg.Wait()
-	close(resultChan)
-	close(semaphore)
+	go func() {
+		wg.Wait()
+		close(resultChan)
+		close(semaphore)
+	}()
 
 	for result := range resultChan {
 		size += result.Size
@@ -196,26 +148,36 @@ func analyzeActions(request structures.CleanRequest, actions []structures.Action
 	}
 }
 
-func processAction(action structures.Action, currentPathCount int) (uint64, uint64, []string) {
+// ProcessAction acts as a router to determine the correct file discovery strategy.
+//
+// It expands environment variables in paths (e.g., %APPDATA%) and selects between:
+// - Globbing (if "*" is present or explicitly set)
+// - Recursive walking ("walk.files")
+// - Single file verification
+func ProcessAction(action structures.Action, currentPathCount int) (uint64, uint64, []string) {
 	searchPath := detector.ExpandPath(action.Path)
 
 	if action.Search == "glob" || strings.Contains(searchPath, "*") {
-		return processGlobAction(searchPath, currentPathCount)
+		return ProcessGlobAction(searchPath, currentPathCount)
 	} else if action.Search == "walk.files" {
-		return processWalkAction(searchPath, currentPathCount)
+		return ProcessWalkAction(searchPath)
 	}
 
-	return processFileAction(searchPath)
+	return ProcessFileAction(searchPath)
 }
 
-func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
+// ProcessGlobAction handles file discovery using standard filesystem glob patterns.
+//
+// It performs a concurrent stat() on all matches found by filepath.Glob.
+// Thread-safe: Uses a mutex to safely update the size, count, and path slice.
+func ProcessGlobAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
 	var size uint64 = 0
 	var fileCount uint64 = 0
 	var paths []string
 
 	matches, err := filepath.Glob(searchPath)
 	if err != nil {
-		fmt.Printf("Error in glob %s: %v\n", searchPath, err)
+		log.Printf("Error in glob %s: %v\n", searchPath, err)
 		return 0, 0, nil
 	}
 
@@ -253,7 +215,12 @@ func processGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 	return size, fileCount, paths
 }
 
-func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
+// ProcessWalkAction handles recursive directory traversal.
+//
+// It employs a producer-consumer pattern:
+// - CollectFilePaths (Producer): Walks the dir and pushes paths to a channel.
+// - ProcessFileWorker (Consumers): 'workers' amount of goroutines read from the channel and stat files.
+func ProcessWalkAction(searchPath string) (uint64, uint64, []string) {
 	var size, fileCount uint64
 	var paths []string
 
@@ -265,19 +232,21 @@ func processWalkAction(searchPath string, currentPathCount int) (uint64, uint64,
 	// start worker goroutines
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
-		go processFileWorker(fileChan, &size, &fileCount, &paths, currentPathCount, &mutex, &wg)
+		go ProcessFileWorker(fileChan, &size, &fileCount, &paths, &mutex, &wg)
 	}
 
-	collectFilePaths(searchPath, fileChan)
+	CollectFilePaths(searchPath, fileChan)
 
-	wg.Wait()
 	close(fileChan)
+	wg.Wait()
 
 	return size, fileCount, paths
 }
 
-func processFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
-	paths *[]string, currentPathCount int, mutex *sync.Mutex, wg *sync.WaitGroup) {
+// ProcessFileWorker is the consumer for ProcessWalkAction.
+// It reads file paths from a channel, calculates their size, and aggregates results.
+func ProcessFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
+	paths *[]string, mutex *sync.Mutex, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 
@@ -290,14 +259,16 @@ func processFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
 		mutex.Lock()
 		*size += uint64(info.Size())
 		*fileCount++
-		if currentPathCount+len(*paths) < maxPathsToCollect {
+		if len(*paths) < maxPathsToCollect {
 			*paths = append(*paths, path)
 		}
 		mutex.Unlock()
 	}
 }
 
-func collectFilePaths(searchPath string, fileChan chan string) {
+// CollectFilePaths is the producer for ProcessWalkAction.
+// It walks the directory tree and sends valid file paths to the fileChan.
+func CollectFilePaths(searchPath string, fileChan chan string) {
 	err := filepath.WalkDir(searchPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
@@ -312,11 +283,12 @@ func collectFilePaths(searchPath string, fileChan chan string) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error walking directory %s: %v\n", searchPath, err)
+		slog.Error("Error walking directory %s: %v\n", searchPath, err)
 	}
 }
 
-func processFileAction(searchPath string) (uint64, uint64, []string) {
+// ProcessFileAction handles the simplest case: verifying a single specific file path.
+func ProcessFileAction(searchPath string) (uint64, uint64, []string) {
 	info, err := os.Stat(searchPath)
 	if err != nil || info.IsDir() {
 		return 0, 0, nil

@@ -2,15 +2,14 @@
   "id": "vscode",
   "name": "Visual Studio Code",
   "description": "Code editor",
-  "icon": "💻",
-  "detection": {
+  "running": false,
+  "detect": {
+    "type": "file",
     "paths": [
-      "%LocalAppData%/Programs/Microsoft VS Code/Code.exe",
-      "%ProgramFiles%/Microsoft VS Code/Code.exe",
-      "~/.vscode",
-      "/usr/bin/code",
-      "/Applications/Visual Studio Code.app"
-    ]
+      "%LocalAppData%\\Programs\\Microsoft VS Code\\Code.exe",
+      "%ProgramFiles%\\Microsoft VS Code\\Code.exe"
+    ],
+    "registry": []
   },
   "options": [
     {
@@ -20,21 +19,15 @@
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%AppData%/Code/Cache",
+          "search": "walk.files",
+          "path": "%AppData%\\Code\\Cache",
           "os": ["windows"]
         },
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%AppData%/Code/CachedData",
+          "search": "walk.files",
+          "path": "%AppData%\\Code\\CachedData",
           "os": ["windows"]
-        },
-        {
-          "command": "delete",
-          "search": "walk.all",
-          "path": "~/.config/Code/Cache",
-          "os": ["linux"]
         }
       ]
     },
@@ -46,9 +39,8 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%AppData%/Code/logs",
-          "os": ["windows"],
-          "type": "f"
+          "path": "%AppData%\\Code\\logs",
+          "os": ["windows"]
         }
       ]
     },
@@ -59,8 +51,8 @@
       "actions": [
         {
           "command": "delete",
-          "search": "walk.all",
-          "path": "%AppData%/Code/User/workspaceStorage",
+          "search": "walk.files",
+          "path": "%AppData%\\Code\\User\\workspaceStorage",
           "os": ["windows"]
         }
       ]

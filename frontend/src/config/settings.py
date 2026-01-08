@@ -1,4 +1,6 @@
 # configuration file
+from pathlib import Path
+
 from src.enums.Enums import Appearance
 
 # API settings
@@ -13,6 +15,11 @@ WINDOW_HEIGHT = 700
 MIN_WIDTH = 800
 MIN_HEIGHT = 600
 
+# FILES SETTINGS
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+THEME_DIRECTORY = BASE_DIR / "resources" / "themes"
+ICONS_DIRECTORY = BASE_DIR / "resources" / "icons"
+
 # TOP menu settings
 TOP_MENU_HEIGHT = 60
 TOP_MENU_CORNER_RADIUS = 0
@@ -21,13 +28,17 @@ TOP_MENU_CORNER_RADIUS = 0
 TOP_MENU_BUTTON_CLEAN_WIDTH = 120
 TOP_MENU_BUTTON_CLEAN_HEIGHT = 50
 
-# button `analyze`
-TOP_MENU_BUTTON_ANALYZE_WIDTH = 110
-TOP_MENU_BUTTON_ANALYZE_HEIGHT = 50
+# button `preview`
+TOP_MENU_BUTTON_PREVIEW_WIDTH = 110
+TOP_MENU_BUTTON_PREVIEW_HEIGHT = 50
 
-# button `clear_options`
-TOP_MENU_BUTTON_CLEAR_OPTIONS_WIDTH = 120
-TOP_MENU_BUTTON_CLEAR_OPTIONS_HEIGHT = 50
+# button `unselect`
+TOP_MENU_BUTTON_UNSELECT_WIDTH = 120
+TOP_MENU_BUTTON_UNSELECT_HEIGHT = 50
+
+# button `abort`
+TOP_MENU_BUTTON_ABORT_WIDTH = 120
+TOP_MENU_BUTTON_ABORT_HEIGHT = 50
 
 # button `settings`
 TOP_MENU_BUTTON_SETTINGS_WIDTH = 100

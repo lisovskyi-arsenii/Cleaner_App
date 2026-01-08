@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "cache2",
-      "label": "cache2",
+      "label": "Cache2",
       "description": "Firefox cache2 directory in all profiles",
       "actions": [
         {
@@ -32,7 +32,7 @@
     },
     {
       "id": "startup_cache",
-      "label": "startupCache",
+      "label": "Startup Cache",
       "description": "Firefox startup cache",
       "actions": [
         {

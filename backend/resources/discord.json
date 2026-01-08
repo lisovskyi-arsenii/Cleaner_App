@@ -20,7 +20,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%AppData%\\discord\\Cache\\*",
+          "path": "%AppData%\\discord\\Cache",
           "os": ["windows"]
         }
       ]
@@ -33,7 +33,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%AppData%\\discord\\Code Cache\\*",
+          "path": "%AppData%\\discord\\Code Cache",
           "os": ["windows"]
         }
       ]
@@ -46,7 +46,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%AppData%\\discord\\GPUCache\\*",
+          "path": "%AppData%\\discord\\GPUCache",
           "os": ["windows"]
         }
       ]

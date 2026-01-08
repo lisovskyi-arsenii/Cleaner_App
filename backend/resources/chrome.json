@@ -25,7 +25,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Cache\\*",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Cache",
           "os": ["windows"]
         }
       ]
@@ -38,7 +38,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Code Cache\\*",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\Code Cache",
           "os": ["windows"]
         }
       ]
@@ -52,7 +52,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\GPUCache\\*",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\Default\\GPUCache",
           "os": ["windows"]
         }
       ]
@@ -65,7 +65,7 @@
         {
           "command": "delete",
           "search": "walk.files",
-          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\ShaderCache\\*",
+          "path": "%LocalAppData%\\Google\\Chrome\\User Data\\ShaderCache",
           "os": ["windows"]
         }
       ]

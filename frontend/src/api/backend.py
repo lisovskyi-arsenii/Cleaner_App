@@ -7,6 +7,8 @@ from requests import Timeout
 
 from src.config.settings import BACKEND_URL, REQUEST_TIMEOUT
 from src.enums.Enums import APIMethods
+from src.routes.routes import *
+
 
 # any request to backend
 def api_request(endpoint: str, method: APIMethods, data=None) -> Any:
@@ -52,15 +54,15 @@ def api_request(endpoint: str, method: APIMethods, data=None) -> Any:
 # certain requests
 # get list of cleaners
 def get_cleaners() -> Any:
-    return api_request("/api/cleaners", method=APIMethods.GET)
+    return api_request(endpoint=API_GROUP+CLEANERS, method=APIMethods.GET)
 
 
 # analyze cleaners
-def analyze_cleaners(selected_options) -> Any:
-    return api_request("/api/analyze", method=APIMethods.POST, data=selected_options)
+def preview_cleaners(selected_options) -> Any:
+    return api_request(endpoint=API_GROUP+PREVIEW, method=APIMethods.POST, data=selected_options)
 
 
 # send request to backend for cleaning all selected files
 def clean_files(selected_options) -> Any:
-    return api_request("/api/clean", method=APIMethods.POST, data=selected_options)
+    return api_request(endpoint=API_GROUP+CLEAN, method=APIMethods.POST, data=selected_options)
 
