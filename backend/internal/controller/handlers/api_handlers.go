@@ -8,6 +8,7 @@ import (
 	"backend/internal/models"
 	"backend/internal/service"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -24,18 +25,26 @@ import (
 //
 // GET /api/cleaners
 func GetCleaners(c *gin.Context) {
-	queryContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	allCleaners, err := cleaners.LoadAllCleaners()
+	allCleaners, err := cleaners.LoadAllCleaners(ctx)
 	if err != nil {
+		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
+			return
+		}
 		slog.Error("Error loading all cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading cleaners: %v", err)})
 		return
 	}
 
-	installedCleaners, err := cleaners.FilterOnlyInstalledCleaners(allCleaners)
+	installedCleaners, err := cleaners.FilterOnlyInstalledCleaners(ctx, allCleaners)
 	if err != nil {
+		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
+			return
+		}
 		slog.Error("Error filtering installed cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error filtering installed cleaners: %v", err)})
 		return
@@ -59,7 +68,7 @@ func GetCleaners(c *gin.Context) {
 //
 // POST /api/preview
 func HandlePreview(c *gin.Context) {
-	var requests []structures.CleanRequest
+	var requests []models.CleanRequest
 	if err := c.ShouldBindJSON(&requests); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
@@ -67,13 +76,24 @@ func HandlePreview(c *gin.Context) {
 
 	log.Println("DEBUG: Cleaners - ", requests)
 
-	cleanerMap, err := service.LoadCleanerMap()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cleanerMap, err := service.LoadCleanerMap(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading cleaners: %v", err)})
 		return
 	}
 
-	response := service.AnalyzeRequests(requests, cleanerMap)
+	response := service.AnalyzeRequests(ctx, requests, cleanerMap)
+	if err != nil {
+		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error processing requests: %v", err)})
+		return
+	}
 	slog.Debug("DEBUG: AnalyzeResponse - ", *response)
 
 	c.JSON(http.StatusOK, &response)
