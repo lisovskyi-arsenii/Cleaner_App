@@ -1,4 +1,4 @@
-package handlers
+package service
 
 import (
 	"backend/src/cleaners_util"
@@ -8,10 +8,23 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 )
 
+// maxPathsToCollect limits the number of file paths collected during the reviewing phase
+const maxPathsToCollect = 500
+
+// workers determines the concurrency level of operations, based on the CPU count
+var workers = runtime.NumCPU() * 2
+
+
+// LoadCleanerMap transforms the flat list of cleaners into a nested map structure.
+//
+// It loads all definitions via cleaners_util and organizes them for O(1) lookup
+// during the analysis phase.
+// Returns a map keyed by [CleanerID][OptionID] containing the list of Actions.
 func LoadCleanerMap() (map[string]map[string][]structures.Action, error) {
 	allCleaners, err := cleaners_util.LoadAllCleaners()
 	if err != nil {
@@ -29,6 +42,12 @@ func LoadCleanerMap() (map[string]map[string][]structures.Action, error) {
 	return cleanerMap, nil
 }
 
+// AnalyzeRequests serves as the entry point for processing a batch of cleanup requests.
+//
+// It orchestrates the analysis by:
+// 1. Validating that the requested CleanerID and OptionID exist.
+// 2. Spinning up concurrent workers (limited by the 'workers' global) to process requests.
+// 3. Aggregating the results (Size, FileCount) into a single response.
 func AnalyzeRequests(requests []structures.CleanRequest,
 	cleanerMap map[string]map[string][]structures.Action) *structures.AnalyzeResponse {
 	response := &structures.AnalyzeResponse{
@@ -72,6 +91,10 @@ func AnalyzeRequests(requests []structures.CleanRequest,
 	return response
 }
 
+// AnalyzeActions processes the specific actions (paths/globs) associated with a single cleaner option.
+//
+// It checks OS compatibility for each action and executes them concurrently using
+// the same worker-pool pattern as AnalyzeRequests.
 func AnalyzeActions(request structures.CleanRequest, actions []structures.Action) structures.AnalyzeItem {
 	var size uint64 = 0
 	var fileCount uint64 = 0
@@ -124,6 +147,12 @@ func AnalyzeActions(request structures.CleanRequest, actions []structures.Action
 	}
 }
 
+// ProcessAction acts as a router to determine the correct file discovery strategy.
+//
+// It expands environment variables in paths (e.g., %APPDATA%) and selects between:
+// - Globbing (if "*" is present or explicitly set)
+// - Recursive walking ("walk.files")
+// - Single file verification
 func ProcessAction(action structures.Action, currentPathCount int) (uint64, uint64, []string) {
 	searchPath := detector.ExpandPath(action.Path)
 
@@ -136,6 +165,10 @@ func ProcessAction(action structures.Action, currentPathCount int) (uint64, uint
 	return ProcessFileAction(searchPath)
 }
 
+// ProcessGlobAction handles file discovery using standard filesystem glob patterns.
+//
+// It performs a concurrent stat() on all matches found by filepath.Glob.
+// Thread-safe: Uses a mutex to safely update the size, count, and path slice.
 func ProcessGlobAction(searchPath string, currentPathCount int) (uint64, uint64, []string) {
 	var size uint64 = 0
 	var fileCount uint64 = 0
@@ -181,6 +214,11 @@ func ProcessGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 	return size, fileCount, paths
 }
 
+// ProcessWalkAction handles recursive directory traversal.
+//
+// It employs a producer-consumer pattern:
+// - CollectFilePaths (Producer): Walks the dir and pushes paths to a channel.
+// - ProcessFileWorker (Consumers): 'workers' amount of goroutines read from the channel and stat files.
 func ProcessWalkAction(searchPath string) (uint64, uint64, []string) {
 	var size, fileCount uint64
 	var paths []string
@@ -204,6 +242,8 @@ func ProcessWalkAction(searchPath string) (uint64, uint64, []string) {
 	return size, fileCount, paths
 }
 
+// ProcessFileWorker is the consumer for ProcessWalkAction.
+// It reads file paths from a channel, calculates their size, and aggregates results.
 func ProcessFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
 	paths *[]string, mutex *sync.Mutex, wg *sync.WaitGroup) {
 
@@ -225,6 +265,8 @@ func ProcessFileWorker(fileChan chan string, size *uint64, fileCount *uint64,
 	}
 }
 
+// CollectFilePaths is the producer for ProcessWalkAction.
+// It walks the directory tree and sends valid file paths to the fileChan.
 func CollectFilePaths(searchPath string, fileChan chan string) {
 	err := filepath.WalkDir(searchPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -244,6 +286,7 @@ func CollectFilePaths(searchPath string, fileChan chan string) {
 	}
 }
 
+// ProcessFileAction handles the simplest case: verifying a single specific file path.
 func ProcessFileAction(searchPath string) (uint64, uint64, []string) {
 	info, err := os.Stat(searchPath)
 	if err != nil || info.IsDir() {
