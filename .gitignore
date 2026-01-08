@@ -20,6 +20,12 @@ ENV/
 *.out
 vendor/
 
+# Environment files
+.env
+*.env
+backend/.env
+frontend/.env
+
 # OS
 .DS_Store
 Thumbs.db
