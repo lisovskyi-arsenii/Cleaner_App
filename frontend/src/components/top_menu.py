@@ -6,7 +6,7 @@ from src.config.settings import *
 
 class TopMenu(ctk.CTkFrame):
     def __init__(self, parent, on_preview=None, on_clean=None,
-                 on_clear_options=None, on_settings=None):
+                 on_clear_options=None, on_abort=None, on_settings=None):
         super().__init__(
             parent,
             height=TOP_MENU_HEIGHT,
@@ -34,6 +34,12 @@ class TopMenu(ctk.CTkFrame):
         self.btn_unselect_icon = ctk.CTkImage(
             light_image=Image.open(TOP_ICONS_DIRECTORY / "unselect.png"),
             dark_image=Image.open(TOP_ICONS_DIRECTORY / "unselect.png"),
+        )
+
+        # abort icon
+        self.btn_abort_icon = ctk.CTkImage(
+            light_image=Image.open(TOP_ICONS_DIRECTORY / "abort.png"),
+            dark_image=Image.open(TOP_ICONS_DIRECTORY / "abort.png"),
         )
 
         # settings icon
@@ -74,6 +80,17 @@ class TopMenu(ctk.CTkFrame):
             command=on_clear_options
         )
         self.btn_unselect.pack(side="left", padx=10, pady=10)
+
+        # button `abort`
+        self.btn_abort = ctk.CTkButton(
+            self,
+            text="Abort",
+            image=self.btn_abort_icon,
+            width=TOP_MENU_BUTTON_ABORT_WIDTH,
+            height=TOP_MENU_BUTTON_ABORT_HEIGHT,
+            command=on_abort
+        )
+        self.btn_abort.pack(side="left", padx=10, pady=10)
 
         # button `settings`
         self.btn_settings = ctk.CTkButton(

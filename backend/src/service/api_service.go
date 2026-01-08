@@ -4,8 +4,9 @@ import (
 	"backend/src/cleaners_util"
 	"backend/src/detector"
 	"backend/src/structures"
-	"fmt"
 	"io/fs"
+	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,7 +29,7 @@ var workers = runtime.NumCPU() * 2
 func LoadCleanerMap() (map[string]map[string][]structures.Action, error) {
 	allCleaners, err := cleaners_util.LoadAllCleaners()
 	if err != nil {
-		fmt.Printf("Error loading all cleaners: %v\n", err)
+		slog.Error("Error loading all cleaners: %v\n", err)
 		return nil, err
 	}
 
@@ -176,7 +177,7 @@ func ProcessGlobAction(searchPath string, currentPathCount int) (uint64, uint64,
 
 	matches, err := filepath.Glob(searchPath)
 	if err != nil {
-		fmt.Printf("Error in glob %s: %v\n", searchPath, err)
+		log.Printf("Error in glob %s: %v\n", searchPath, err)
 		return 0, 0, nil
 	}
 
@@ -282,7 +283,7 @@ func CollectFilePaths(searchPath string, fileChan chan string) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error walking directory %s: %v\n", searchPath, err)
+		slog.Error("Error walking directory %s: %v\n", searchPath, err)
 	}
 }
 
