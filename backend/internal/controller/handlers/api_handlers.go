@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"backend/internal/cleaners"
+	"backend/internal/constants"
 	"backend/internal/models"
 	"backend/internal/service"
 	"context"
@@ -13,7 +14,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,12 +25,12 @@ import (
 //
 // GET /api/cleaners
 func GetCleaners(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.GetCleanersContextTimeout)
 	defer cancel()
 
 	allCleaners, err := cleaners.LoadAllCleaners(ctx)
 	if err != nil {
-		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}
@@ -41,7 +41,7 @@ func GetCleaners(c *gin.Context) {
 
 	installedCleaners, err := cleaners.FilterOnlyInstalledCleaners(ctx, allCleaners)
 	if err != nil {
-		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}
@@ -76,7 +76,7 @@ func HandlePreview(c *gin.Context) {
 
 	log.Println("DEBUG: Cleaners - ", requests)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.HandlePreviewContextTimeout)
 	defer cancel()
 
 	cleanerMap, err := service.LoadCleanerMap(ctx)
@@ -87,7 +87,7 @@ func HandlePreview(c *gin.Context) {
 
 	response, err := service.AnalyzeRequests(ctx, requests, cleanerMap)
 	if err != nil {
-		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}

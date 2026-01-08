@@ -228,8 +228,15 @@ func ProcessGlobAction(ctx context.Context, searchPath string) (uint64, uint64, 
 	var mutex sync.Mutex
 	semaphore := make(chan struct{}, workers)
 
+	cancelled := false
 	for _, match := range matches {
-		if ctx.Err() != nil {
+		select {
+		case <-ctx.Done():
+			cancelled = true
+		default:
+		}
+
+		if cancelled {
 			break
 		}
 

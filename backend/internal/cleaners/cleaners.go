@@ -22,6 +22,10 @@ func LoadAllCleaners(ctx context.Context) ([]models.Cleaner, error) {
 	var cleaners []models.Cleaner
 
 	for _, file := range files {
+		if ctx.Err() != nil {
+			return cleaners, ctx.Err()
+		}
+
 		if filepath.Ext(file.Name()) != ".json" {
 			continue
 		}
@@ -53,6 +57,10 @@ func FilterOnlyInstalledCleaners(ctx context.Context,cleaners []models.Cleaner) 
 	var installedCleaners []models.Cleaner
 
 	for _, cleaner := range cleaners {
+		if ctx.Err() != nil {
+			return installedCleaners, ctx.Err()
+		}
+
 		if detector.DetectInstalled(cleaner.Detect) {
 			installedCleaners = append(installedCleaners, cleaner)
 		}
