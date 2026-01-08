@@ -1,7 +1,7 @@
 package detector
 
 import (
-    "backend/src/structures"
+    "backend/internal/models"
     "os"
     "path/filepath"
     "runtime"
@@ -12,7 +12,7 @@ import (
 
 
 // DetectInstalled перевіряє чи програма встановлена
-func DetectInstalled(detection structures.Detection) bool {
+func DetectInstalled(detection models.Detection) bool {
     if detection.Type == "always" || (len(detection.Paths) == 0 && len(detection.Registry) == 0) {
         return true
     }

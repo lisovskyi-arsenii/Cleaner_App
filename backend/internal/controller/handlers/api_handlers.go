@@ -85,7 +85,7 @@ func HandlePreview(c *gin.Context) {
 		return
 	}
 
-	response := service.AnalyzeRequests(ctx, requests, cleanerMap)
+	response, err := service.AnalyzeRequests(ctx, requests, cleanerMap)
 	if err != nil {
 		if errors.Is(context.DeadlineExceeded, ctx.Err()) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
