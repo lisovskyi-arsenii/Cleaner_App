@@ -15,8 +15,18 @@ class TopMenu(ctk.CTkFrame):
 
         self.grid_propagate(False)
 
-        TOP_ICONS_DIRECTORY = ICONS_DIRECTORY.joinpath("top_menu_icons")
+        # store callbacks
+        self.on_preview = on_preview
+        self.on_clean = on_clean
+        self.on_clear_options = on_clear_options
+        self.on_settings = on_settings
+        self.on_abort = on_abort
 
+        self._create_ui_buttons()
+
+
+    def _create_ui_buttons(self):
+        TOP_ICONS_DIRECTORY = ICONS_DIRECTORY.joinpath("top_menu_icons")
         # icons
         # clean icon
         self.btn_clean_icon = ctk.CTkImage(
@@ -55,7 +65,7 @@ class TopMenu(ctk.CTkFrame):
             image=self.btn_clean_icon,
             width=TOP_MENU_BUTTON_CLEAN_WIDTH,
             height=TOP_MENU_BUTTON_CLEAN_HEIGHT,
-            command=on_clean
+            command=self.on_clean
         )
         self.btn_clean.pack(side="left", padx=10, pady=10)
 
@@ -66,7 +76,7 @@ class TopMenu(ctk.CTkFrame):
             image=self.btn_preview_icon,
             width=TOP_MENU_BUTTON_PREVIEW_WIDTH,
             height=TOP_MENU_BUTTON_PREVIEW_HEIGHT,
-            command=on_preview
+            command=self.on_preview
         )
         self.btn_preview.pack(side="left", padx=10, pady=10)
 
@@ -77,7 +87,7 @@ class TopMenu(ctk.CTkFrame):
             image=self.btn_unselect_icon,
             width=TOP_MENU_BUTTON_UNSELECT_WIDTH,
             height=TOP_MENU_BUTTON_UNSELECT_HEIGHT,
-            command=on_clear_options
+            command=self.on_clear_options
         )
         self.btn_unselect.pack(side="left", padx=10, pady=10)
 
@@ -88,7 +98,7 @@ class TopMenu(ctk.CTkFrame):
             image=self.btn_abort_icon,
             width=TOP_MENU_BUTTON_ABORT_WIDTH,
             height=TOP_MENU_BUTTON_ABORT_HEIGHT,
-            command=on_abort
+            command=self.on_abort
         )
         self.btn_abort.pack(side="left", padx=10, pady=10)
 
@@ -99,6 +109,25 @@ class TopMenu(ctk.CTkFrame):
             image=self.btn_settings_icon,
             width=TOP_MENU_BUTTON_SETTINGS_WIDTH,
             height=TOP_MENU_BUTTON_SETTINGS_HEIGHT,
-            command=on_settings
+            command=self.on_settings
         )
         self.btn_settings.pack(side="right", padx=10, pady=10)
+
+
+    def enable_preview(self):
+        self.btn_preview.configure(state="normal")
+
+    def disable_preview(self):
+        self.btn_preview.configure(state="disabled")
+
+    def enable_clean(self):
+        self.btn_clean.configure(state="normal")
+
+    def disable_clean(self):
+        self.btn_clean.configure(state="disabled")
+
+    def enable_abort(self):
+        self.btn_abort.configure(state="normal")
+
+    def disable_abort(self):
+        self.btn_abort.configure(state="disabled")

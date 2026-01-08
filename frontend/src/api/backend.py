@@ -57,12 +57,15 @@ def get_cleaners() -> Any:
     return api_request(endpoint=API_GROUP+CLEANERS, method=APIMethods.GET)
 
 
-# analyze cleaners
+# preview cleaners
 def preview_cleaners(selected_options) -> Any:
     return api_request(endpoint=API_GROUP+PREVIEW, method=APIMethods.POST, data=selected_options)
-
 
 # send request to backend for cleaning all selected files
 def clean_files(selected_options) -> Any:
     return api_request(endpoint=API_GROUP+CLEAN, method=APIMethods.POST, data=selected_options)
+
+# abort request
+def abort_request() -> Any:
+    return api_request(endpoint=API_GROUP+ABORT, method=APIMethods.POST)
 

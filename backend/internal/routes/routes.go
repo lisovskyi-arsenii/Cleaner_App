@@ -8,4 +8,5 @@ const (
 	GetCleaners = "/cleaners"
 	Preview     = "/preview"
 	Clean       = "/clean"
+	Abort       = "/abort"
 )

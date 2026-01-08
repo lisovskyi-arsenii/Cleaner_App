@@ -75,6 +75,7 @@ func main() {
 		api.GET(routes.GetCleaners, handlers.GetCleaners)
 		api.POST(routes.Preview, handlers.HandlePreview)
 		api.POST(routes.Clean, handlers.HandleClean)
+		api.POST(routes.Abort, handlers.HandleAbort)
 	}
 
 	// load port from .env file

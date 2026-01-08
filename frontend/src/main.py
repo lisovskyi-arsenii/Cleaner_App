@@ -1,6 +1,6 @@
 # main - entrance point of program
 
-from src.App import App
+from src.app import App
 
 def main():
     app = App()

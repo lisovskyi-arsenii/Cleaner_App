@@ -28,12 +28,26 @@ func GetCleaners(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.GetCleanersContextTimeout)
 	defer cancel()
 
+	abortManager := service.GetAbortManager()
+	abortManager.SetOperation(cancel)
+	defer abortManager.Clear()
+
 	allCleaners, err := cleaners.LoadAllCleaners(ctx)
 	if err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Review cancelled",
+				"partial": true,
+				"data": nil,
+			})
+			return
+		}
+
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}
+
 		slog.Error("Error loading all cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading cleaners: %v", err)})
 		return
@@ -41,10 +55,20 @@ func GetCleaners(c *gin.Context) {
 
 	installedCleaners, err := cleaners.FilterOnlyInstalledCleaners(ctx, allCleaners)
 	if err != nil {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Review cancelled",
+				"partial": true,
+				"data": installedCleaners,
+			})
+			return
+		}
+
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}
+
 		slog.Error("Error filtering installed cleaners: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error filtering installed cleaners: %v", err)})
 		return
@@ -79,6 +103,10 @@ func HandlePreview(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.HandlePreviewContextTimeout)
 	defer cancel()
 
+	abortManager := service.GetAbortManager()
+	abortManager.SetOperation(cancel)
+	defer abortManager.Clear()
+
 	cleanerMap, err := service.LoadCleanerMap(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading cleaners: %v", err)})
@@ -91,6 +119,16 @@ func HandlePreview(c *gin.Context) {
 			c.JSON(http.StatusRequestTimeout, gin.H{"error": "Request timed out"})
 			return
 		}
+
+		if errors.Is(ctx.Err(), context.Canceled) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Review cancelled",
+				"partial": true,
+				"data": response,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error processing requests: %v", err)})
 		return
 	}
@@ -107,4 +145,20 @@ func HandlePreview(c *gin.Context) {
 // POST /api/clean
 func HandleClean(c *gin.Context) {
 	// TODO: Implement the cleaning logic
+}
+
+func HandleAbort(c *gin.Context) {
+	abortManager := service.GetAbortManager()
+
+	if abortManager.Abort() {
+		slog.Info("Operation aborted by user")
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Operation cancelled",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "No operation to cancel",
+	})
 }
