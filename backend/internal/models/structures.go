@@ -1,6 +1,6 @@
-package structures
+package models
 
-// structures for backend
+// models for backend
 
 // Cleaner defines a type representing a cleaning operation with associated options and metadata.
 type Cleaner struct {

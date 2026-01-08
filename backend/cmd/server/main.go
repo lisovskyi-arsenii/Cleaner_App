@@ -1,10 +1,10 @@
 package main
 
 import (
-	"backend/src/controller/handlers"
-	"backend/src/logger"
-	"backend/src/middleware"
-	"backend/src/routes"
+	"backend/internal/controller/handlers"
+	"backend/internal/logger"
+	"backend/internal/middleware"
+	"backend/internal/routes"
 	"fmt"
 	"log/slog"
 	"os"

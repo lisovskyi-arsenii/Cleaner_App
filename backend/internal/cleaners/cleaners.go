@@ -1,15 +1,16 @@
-package cleaners_util
+package cleaners
 
 import (
-	"backend/src/detector"
-	"backend/src/structures"
+	"backend/internal/detector"
+	"backend/internal/models"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"os"
 	"path/filepath"
 )
 
-func LoadAllCleaners() ([]structures.Cleaner, error) {
+func LoadAllCleaners(ctx context.Context) ([]models.Cleaner, error) {
 	cleanersDir := "./resources"
 
 	files, err := os.ReadDir(cleanersDir)
@@ -18,7 +19,7 @@ func LoadAllCleaners() ([]structures.Cleaner, error) {
 		return nil, err
 	}
 
-	var cleaners []structures.Cleaner
+	var cleaners []models.Cleaner
 
 	for _, file := range files {
 		if filepath.Ext(file.Name()) != ".json" {
@@ -33,7 +34,7 @@ func LoadAllCleaners() ([]structures.Cleaner, error) {
 			continue
 		}
 
-		var cleaner structures.Cleaner
+		var cleaner models.Cleaner
 		if err := json.Unmarshal(data, &cleaner); err != nil {
 			slog.Error("Error parsing file %s: %v\n", filePath, err)
 			continue
@@ -48,8 +49,8 @@ func LoadAllCleaners() ([]structures.Cleaner, error) {
 }
 
 
-func FilterOnlyInstalledCleaners(cleaners []structures.Cleaner) ([]structures.Cleaner, error) {
-	var installedCleaners []structures.Cleaner
+func FilterOnlyInstalledCleaners(ctx context.Context,cleaners []models.Cleaner) ([]models.Cleaner, error) {
+	var installedCleaners []models.Cleaner
 
 	for _, cleaner := range cleaners {
 		if detector.DetectInstalled(cleaner.Detect) {
