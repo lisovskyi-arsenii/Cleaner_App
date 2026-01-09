@@ -1,0 +1,23 @@
+{
+  "id": "test_slow",
+  "name": "Test Slow Scanner",
+  "description": "For testing abort - scans a large directory",
+  "detect": {
+    "type": "always"
+  },
+  "options": [
+    {
+      "id": "windows_folder",
+      "label": "Scan Windows Folder",
+      "description": "Scans entire Windows folder (slow)",
+      "actions": [
+        {
+          "command": "delete",
+          "search": "walk.files",
+          "path": "C:\\Windows",
+          "os": ["windows"]
+        }
+      ]
+    }
+  ]
+}

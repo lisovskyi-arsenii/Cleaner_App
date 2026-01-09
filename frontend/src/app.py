@@ -1,5 +1,7 @@
 # Main class App for all components
 import threading
+from time import sleep
+
 import customtkinter as ctk
 
 from src.api import backend
@@ -13,7 +15,7 @@ from src.config.settings import *
 from src.functions.wrapper_functions import async_action_clear_checkboxes
 
 
-# головний клас програми
+# main app
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -24,12 +26,15 @@ class App(ctk.CTk):
         # settings window
         self.settings_window = None
 
+        # bool var for whether any request was sent to backend or not
         self.is_fetching_to_backend = False
         self.current_thread = None
 
         # base config for window and widgets
+        self.current_color_theme = DEFAULT_THEME
+
         ctk.set_appearance_mode(APPEARANCE_MODE.value)
-        ctk.set_default_color_theme(str(THEME_DIRECTORY / "tokyonight.json"))
+        ctk.set_default_color_theme(str(THEME_DIRECTORY / self.current_color_theme))
 
         # window setup
         self.title(WINDOW_TITLE)
@@ -93,9 +98,11 @@ class App(ctk.CTk):
     def _show_connection_error(self):
         if hasattr(self.main_menu, 'hover_title_main'):
             self.main_menu.hover_title_main.configure(
-                text="❌ Cannot connect to backend", text_color="red"
+                text=STATUS_MESSAGES["connection_error"],
+                text_color=STATUS_COLORS["error"]
             )
 
+    # update button states depends on if is any request was sent or not
     def _update_button_states(self):
         if self.is_fetching_to_backend:
             self.top_menu.disable_preview()
@@ -106,8 +113,8 @@ class App(ctk.CTk):
             self.top_menu.enable_clean()
             self.top_menu.disable_abort()
 
+    # show processing status
     def _show_processing_status(self, message: str, color="blue"):
-        """Show status message in main menu - with safety checks"""
         try:
             if (hasattr(self.main_menu, 'hover_title_main') and
                     self.main_menu.hover_title_main is not None and
@@ -117,7 +124,7 @@ class App(ctk.CTk):
                     text_color=color,
                 )
             else:
-                print(f"Status: {message}")  # Fallback to console
+                print(f"Status: {message}")
         except Exception as e:
             print(f"Error updating status: {e} - Message was: {message}")
 
@@ -129,7 +136,10 @@ class App(ctk.CTk):
 
         selected_data = self.left_menu.get_selected()
         if not selected_data:
-            self._show_processing_status(message="⚠️ No items selected", color="orange")
+            self._show_processing_status(
+                message=STATUS_MESSAGES["no_selection"],
+                color=STATUS_COLORS["warning"]
+            )
             return
 
         self.is_fetching_to_backend = True
@@ -147,6 +157,7 @@ class App(ctk.CTk):
         self.current_thread = threading.Thread(target=backend_thread, daemon=True)
         self.current_thread.start()
 
+    # handle result from backend
     @async_action_clear_checkboxes
     def _handle_backend_complete(self, results, action_name):
         self.is_fetching_to_backend = False
@@ -154,19 +165,29 @@ class App(ctk.CTk):
 
         if results:
             if isinstance(results, dict) and results.get("partial"):
-                self._show_processing_status(f"⚠️ {action_name} cancelled", "orange")
+                self._show_processing_status(
+                    f"⚠️ {action_name} cancelled",
+                    STATUS_COLORS["warning"]
+                )
                 # Show partial results if available
                 if results.get("data"):
                     self.main_menu.show_results(results["data"])
             else:
-                self._show_processing_status(f"✅ {action_name} complete", "green")
+                self._show_processing_status(
+                    f"✅ {action_name} complete",
+                    STATUS_COLORS["success"]
+                )
                 self.main_menu.show_results(results)
         else:
-            self._show_processing_status(f"⚠️ {action_name} returned no data", "orange")
+            self._show_processing_status(
+                f"⚠️ {action_name} returned no data",
+                STATUS_COLORS["warning"]
+            )
 
-        # self.left_menu.clear_selected_checkboxes()
+        self.after(1500, self.main_menu.show_placeholder_text)
 
 
+    # show error whether something went wrong
     def _handle_backend_error(self, error, action_name):
         self.is_fetching_to_backend = False
         self._update_button_states()
@@ -181,7 +202,6 @@ class App(ctk.CTk):
         )
 
 
-    # TODO - change methods for backend request
     # after button `clean` is pressed, this function will be invoked
     @async_action_clear_checkboxes
     def on_clean_clicked(self):
@@ -223,7 +243,4 @@ class App(ctk.CTk):
             self.settings_window = SettingsWindow(self)
         else:
             self.settings_window.focus()
-
-
-
 

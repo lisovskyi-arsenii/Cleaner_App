@@ -59,4 +59,22 @@ SETTINGS_APPEARANCE_MODE_OPTION_MENU_WIDTH = 140
 
 # THEME settings
 APPEARANCE_MODE = Appearance.DARK
+DEFAULT_THEME = "tokyonight.json"
+CURRENT_THEME = "tokyonight.json"
 
+# Status colors for different states
+STATUS_COLORS = {
+    "ready": "gray",
+    "processing": "#3b8ed0",  # blue
+    "success": "#2fa572",     # green
+    "warning": "#ff9500",     # orange
+    "error": "#d62828",       # red
+    "info": "#6c757d",        # gray-blue
+}
+
+# Default text for different states
+STATUS_MESSAGES = {
+    "ready": "✓ Ready",
+    "no_selection": "⚠️ No items selected",
+    "connection_error": "❌ Cannot connect to backend",
+}

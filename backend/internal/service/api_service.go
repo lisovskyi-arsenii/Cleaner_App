@@ -224,6 +224,8 @@ func ProcessGlobAction(ctx context.Context, searchPath string) (uint64, uint64, 
 		return 0, 0, nil
 	}
 
+	slog.Info("Processing glob", "path", searchPath, "matches", len(matches))
+
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	semaphore := make(chan struct{}, workers)
@@ -266,7 +268,6 @@ func ProcessGlobAction(ctx context.Context, searchPath string) (uint64, uint64, 
 				mutex.Unlock()
 
 			}(match)
-
 		case <-ctx.Done():
 			wg.Done()
 			break
