@@ -9,19 +9,19 @@ BACKEND_URL_HTTPS   = "https://localhost:8080"
 REQUEST_TIMEOUT     = 3  # seconds
 
 # WINDOW settings
-WINDOW_TITLE = "CLEANER APP"
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 700
-MIN_WIDTH = 800
-MIN_HEIGHT = 600
+WINDOW_TITLE        = "CLEANER APP"
+WINDOW_WIDTH        = 1200
+WINDOW_HEIGHT       = 700
+MIN_WIDTH           = 800
+MIN_HEIGHT          = 600
 
 # FILES SETTINGS
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-THEME_DIRECTORY = BASE_DIR / "resources" / "themes"
-ICONS_DIRECTORY = BASE_DIR / "resources" / "icons"
+BASE_DIR            = Path(__file__).resolve().parent.parent.parent
+THEME_DIRECTORY     = BASE_DIR / "resources" / "themes"
+ICONS_DIRECTORY     = BASE_DIR / "resources" / "icons"
 
 # TOP menu settings
-TOP_MENU_HEIGHT = 60
+TOP_MENU_HEIGHT     = 60
 TOP_MENU_CORNER_RADIUS = 0
 
 # button `clean`
@@ -62,15 +62,8 @@ APPEARANCE_MODE = Appearance.DARK
 DEFAULT_THEME = "tokyonight.json"
 CURRENT_THEME = "tokyonight.json"
 
-# Status colors for different states
-STATUS_COLORS = {
-    "ready": "gray",
-    "processing": "#3b8ed0",  # blue
-    "success": "#2fa572",     # green
-    "warning": "#ff9500",     # orange
-    "error": "#d62828",       # red
-    "info": "#6c757d",        # gray-blue
-}
+# Colors
+DEFAULT_COLOR = "gray"
 
 # Default text for different states
 STATUS_MESSAGES = {

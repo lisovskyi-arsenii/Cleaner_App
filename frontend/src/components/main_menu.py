@@ -1,12 +1,8 @@
 # Main menu component
-import json
 import customtkinter as ctk
 
-from src.config.settings import (MAIN_MENU_CORNER_RADIUS,
-                                 BASE_DIR, THEME_DIRECTORY,
-                                 CURRENT_THEME, DEFAULT_THEME,
-                                 APPEARANCE_MODE)
-from src.enums.Enums import Appearance
+from src.config.settings import (MAIN_MENU_CORNER_RADIUS, DEFAULT_COLOR)
+from src.utils.theme_loader import get_current_theme_color
 
 
 class MainMenu(ctk.CTkFrame):
@@ -43,40 +39,16 @@ class MainMenu(ctk.CTkFrame):
 
     # default placeholder
     def show_placeholder_text(self):
-        text_color = "gray70"
-        try:
-            current_theme = DEFAULT_THEME
-            if CURRENT_THEME != "":
-                current_theme = CURRENT_THEME
-
-            with open(f"{BASE_DIR}/{THEME_DIRECTORY}{current_theme}", encoding="utf-8") as f:
-                theme_color = json.load(f)
-
-                light = 0
-                dark = 1
-
-                label_color = theme_color["CTkLabel"]
-                if "text_color" in label_color:
-                    match APPEARANCE_MODE:
-                        case Appearance.DARK:
-                            text_color = label_color["text_color"][dark]
-                        case Appearance.LIGHT:
-                            text_color = label_color["text_color"][light]
-
-
-        except FileNotFoundError:
-            print(f"File with theme {current_theme} was not found")
-        except Exception as e:
-            print(f"Error: {e}")
-
-        finally:
-            self.hover_title_main.configure(
-                text="Select cleaners",
-                text_color=text_color
-            )
-            self.hover_description_main.configure(
-                text="Hover over items to see details",
-            )
+        text_color = get_current_theme_color("text_color", DEFAULT_COLOR)
+        print(f"DEBUG: text_color = {text_color}")
+        self.hover_title_main.configure(
+            text="Select cleaners",
+            text_color=text_color
+        )
+        self.hover_description_main.configure(
+            text="Hover over items to see details",
+            text_color=text_color
+        )
 
     # show all info about certain cleaner
     def show_widget_info(self, widget):
