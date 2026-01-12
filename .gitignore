@@ -23,6 +23,7 @@ vendor/
 # Environment files
 .env
 *.env
+additional_info.txt
 backend/.env
 frontend/.env
 
