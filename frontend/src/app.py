@@ -1,6 +1,5 @@
 # Main class App for all components
 import threading
-from time import sleep
 
 import customtkinter as ctk
 
@@ -13,7 +12,7 @@ from src.components.main_menu import MainMenu
 from src.components.top_menu import TopMenu
 from src.config.settings import *
 from src.functions.wrapper_functions import async_action_clear_checkboxes
-
+from src.utils.theme_loader import *
 
 # main app
 class App(ctk.CTk):
@@ -51,6 +50,9 @@ class App(ctk.CTk):
 
         # load data
         self._load_data()
+
+        self.theme_loader = load_theme_colors(self.current_color_theme)
+        print(self.theme_loader)
 
     # initialize all ui components
     def _initialize_ui(self):
@@ -99,7 +101,7 @@ class App(ctk.CTk):
         if hasattr(self.main_menu, 'hover_title_main'):
             self.main_menu.hover_title_main.configure(
                 text=STATUS_MESSAGES["connection_error"],
-                text_color=STATUS_COLORS["error"]
+                text_color=self.theme_loader["error"]
             )
 
     # update button states depends on if is any request was sent or not
@@ -138,7 +140,7 @@ class App(ctk.CTk):
         if not selected_data:
             self._show_processing_status(
                 message=STATUS_MESSAGES["no_selection"],
-                color=STATUS_COLORS["warning"]
+                color=self.theme_loader["warning"]
             )
             return
 
@@ -167,7 +169,7 @@ class App(ctk.CTk):
             if isinstance(results, dict) and results.get("partial"):
                 self._show_processing_status(
                     f"⚠️ {action_name} cancelled",
-                    STATUS_COLORS["warning"]
+                    self.theme_loader["warning"]
                 )
                 # Show partial results if available
                 if results.get("data"):
@@ -175,13 +177,13 @@ class App(ctk.CTk):
             else:
                 self._show_processing_status(
                     f"✅ {action_name} complete",
-                    STATUS_COLORS["success"]
+                    self.theme_loader["success"]
                 )
                 self.main_menu.show_results(results)
         else:
             self._show_processing_status(
                 f"⚠️ {action_name} returned no data",
-                STATUS_COLORS["warning"]
+                self.theme_loader["warning"]
             )
 
         self.after(1500, self.main_menu.show_placeholder_text)
